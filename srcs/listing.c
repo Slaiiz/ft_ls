@@ -1,11 +1,16 @@
 #include "ft_ls.h"
 
-static int	printout_file(const char *path, t_state *state)
+static int	printout_file(const char *file, t_state *state, int padding)
 {
-	if (state->flags & F_LIST)
-	{
-	}
-	ft_printf("%s\n", path);
+	t_filedesc	desc;
+
+	desc.filename = file;
+	if (lstat(file, &desc.stats))
+		return (1);
+//	if (state->flags & F_LIST)
+//	{
+//	}
+	print_filename(&desc, state, padding);
 	return (0);
 }
 
@@ -16,19 +21,19 @@ static int	list_files(const char *path, t_state *state)
 
 int			explore_path(const char *path, t_state *state)
 {
-	DIR	*directory;
+	struct dirent	*ent;
+	DIR				*directory;
 
 	if ((directory = opendir(path)) == NULL)
 	{
 		if (errno == ENOTDIR)
-			printout_file(path, state);
-		else
+			printout_file(path, state, 0);
+		else if (errno == ENOENT)
 		{
-			if (errno == ENOENT)
-				ft_printf("%s: %s: %s\n", state->exec, path, strerror(errno));
+			ft_printf("%s: %s: %s\n", state->exec, path, strerror(errno));
 			return (1);
 		}
+		return (0);
 	}
-	*state = *state;
 	return (0);
 }

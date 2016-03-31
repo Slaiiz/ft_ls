@@ -18,7 +18,7 @@ static int	parse_flags(int *argc, char ***argv, t_state *state)
 
 	while (*argc && --*argc)
 	{
-		if (*(++*argv)[0] != '-')
+		if (**(++*argv) != '-')
 			break ;
 		args = **argv;
 		while (*++args != '\0')
@@ -33,6 +33,8 @@ static int	parse_flags(int *argc, char ***argv, t_state *state)
 				state->flags |= F_REVERSE;
 			else if (*args == 't')
 				state->flags |= F_TIME;
+			else if (*args == 'G')
+				state->flags |= F_COLOR;
 			else
 				return (ft_printf("#!fd=2^%s: %s%c\n", state->exec,
 					"illegal option -- ", *args));
@@ -59,10 +61,15 @@ int			main(int argc, char **argv)
 			return (1);
 	}
 	else
+	{
 		while (argc--)
 		{
-			if (explore_path(*(argv++), &state))
+			if (explore_path(*argv++, &state))
 				return (1);
+			if (argc)
+				ft_putchar(' ');
 		}
+		ft_putchar('\n');
+	}
 	return (0);
 }
