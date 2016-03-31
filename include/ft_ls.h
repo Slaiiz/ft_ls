@@ -28,6 +28,7 @@
 # define F_ALL			4
 # define F_REVERSE		8
 # define F_TIME		   16
+# define F_COLOR	   32
 
 typedef struct	s_state
 {
@@ -35,6 +36,13 @@ typedef struct	s_state
 	short		flags;
 }				t_state;
 
+typedef struct	s_filedesc
+{
+	struct stat	stats;
+	const char	*filename;
+}				t_filedesc;
+
 int				explore_path(const char *path, t_state *state);
+void			print_filename(t_filedesc *desc, t_state *state, int padding);
 
 #endif
