@@ -1,39 +1,83 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   listing.c                                          :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: vchesnea <marvin@42.fr>                    +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2016/04/01 18:52:11 by vchesnea          #+#    #+#             */
+/*   Updated: 2016/04/01 18:52:12 by vchesnea         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
 #include "ft_ls.h"
 
-static int	printout_file(const char *file, t_state *state, int padding)
+static int	printout_file(t_file *file, t_query *query, int padding)
 {
-	t_filedesc	desc;
-
-	desc.filename = file;
-	if (lstat(file, &desc.stats))
-		return (1);
-//	if (state->flags & F_LIST)
-//	{
-//	}
-	print_filename(&desc, state, padding);
+	if (query->flags & F_LIST)
+		print_access(file, query);
+	print_filename(file, query, padding);
 	return (0);
 }
 
-static int	list_files(const char *path, t_state *state)
+static int	list_files(const char *path, t_query *query)
 {
 	return (0);
 }
 
-int			explore_path(const char *path, t_state *state)
+static int	search_directory(t_directory *dir, t_query *query)
 {
 	struct dirent	*ent;
-	DIR				*directory;
+	t_file			*new;
 
-	if ((directory = opendir(path)) == NULL)
+	while ((ent = readdir(dir->dir)) != NULL)
 	{
-		if (errno == ENOTDIR)
-			printout_file(path, state, 0);
-		else if (errno == ENOENT)
+		if (dir->len + 1 > dir->size)
 		{
-			ft_printf("%s: %s: %s\n", state->exec, path, strerror(errno));
-			return (1);
+			if ((new = malloc(sizeof(t_file) * (INC_FACTOR + dir->size))))
+			if (dir->files != NULL)
+			{
+				ft_memcpy(new, dir->files, dir->len * sizeof(t_file));
+				free(dir->files);
+			}
+			dir->files = new;
+			dir->size += INC_FACTOR;
 		}
-		return (0);
+		new = &dir->files[dir->len++];
+		new->ent = ent;
+		lstat(ent->d_name, &new->stats);
+		printout_file(new, query, 0);
 	}
 	return (0);
+}
+
+int			explore_paths(t_query *query)
+{
+	char			*s;
+	t_directory		dir;
+
+	if ((dir.dir = opendir(*query->paths)) == NULL)
+	{
+		s = strrchr(*query->paths, '/');
+		if (errno == ENOTDIR && s && s[1] == '\0')
+		{
+			ft_printf("%s: %s: %s\n", query->exec,
+				*query->paths, strerror(errno));
+			return (1);
+		}
+		else if (errno == ENOENT)
+		{
+			ft_printf("%s: %s: %s\n", query->exec,
+				*query->paths, strerror(errno));
+			return (1);
+		}
+		if (s != NULL)
+		{
+			*s = '\0';
+			*query->paths = s - 1;
+		}
+		return (explore_paths(query));
+	}
+	dir.size = 0;
+	return (search_directory(&dir, query));
 }
