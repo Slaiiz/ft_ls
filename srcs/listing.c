@@ -34,14 +34,15 @@ static int	search_directory(t_directory *dir, t_query *query)
 	{
 		if (dir->len + 1 > dir->size)
 		{
-			if ((new = malloc(sizeof(t_file) * (INC_FACTOR + dir->size))))
+			if ((new = malloc(sizeof(t_file) * (8 + dir->size))) == NULL)
+				return (1);
 			if (dir->files != NULL)
 			{
 				ft_memcpy(new, dir->files, dir->len * sizeof(t_file));
 				free(dir->files);
 			}
 			dir->files = new;
-			dir->size += INC_FACTOR;
+			dir->size += 8;
 		}
 		new = &dir->files[dir->len++];
 		new->ent = ent;
@@ -51,15 +52,30 @@ static int	search_directory(t_directory *dir, t_query *query)
 	return (0);
 }
 
+static int	follow_parent_directory(t_query *query)
+{
+	int		n;
+	char	*s;
+
+	n = ft_strlen(*query->paths);
+	s = ft_strrchr(*query->paths, '/');
+	if (s - *query->paths == n - 1)
+		return (1);
+	else if (s == NULL)
+		*query->paths = ".";
+	else
+		*s = '\0';
+	return (0);
+}
+
 int			explore_paths(t_query *query)
 {
-	char			*s;
-	t_directory		dir;
+	t_directory	dir;
 
+	ft_bzero(&dir, sizeof(t_directory));
 	if ((dir.dir = opendir(*query->paths)) == NULL)
 	{
-		s = strrchr(*query->paths, '/');
-		if (errno == ENOTDIR && s && s[1] == '\0')
+		if (errno == ENOTDIR && follow_parent_directory(query))
 		{
 			ft_printf("%s: %s: %s\n", query->exec,
 				*query->paths, strerror(errno));
@@ -71,13 +87,7 @@ int			explore_paths(t_query *query)
 				*query->paths, strerror(errno));
 			return (1);
 		}
-		if (s != NULL)
-		{
-			*s = '\0';
-			*query->paths = s - 1;
-		}
 		return (explore_paths(query));
 	}
-	dir.size = 0;
 	return (search_directory(&dir, query));
 }

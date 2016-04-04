@@ -36,8 +36,11 @@ static int	parse_flags(int *argc, char ***argv, t_query *query)
 			else if (*args == 'G')
 				query->flags |= F_COLOR;
 			else
+			{
 				ft_printf("#!fd=2^%s: %s%c\n", query->exec,
 				"illegal option -- ", *args);
+				return (1);
+			}
 		}
 	}
 	return (0);

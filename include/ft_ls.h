@@ -35,9 +35,9 @@
 typedef struct		s_query
 {
 	int				len;
-	const char		*exec;
 	short			flags;
-	char			**paths;
+	const char		*exec;
+	const char		**paths;
 }					t_query;
 
 typedef struct		s_file

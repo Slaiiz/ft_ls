@@ -18,10 +18,10 @@ void	print_filename(t_file *file, t_query *query, int pad)
 		ft_putchar(' ');
 	if (query->flags & F_COLOR)
 	{
-		if (file->stats.st_mode & S_IXUSR)
-			ft_printf("{{red}}");
-		else if (file->stats.st_mode & S_IFDIR)
+		if (file->stats.st_mode & S_IFDIR)
 			ft_printf("{{blue}}");
+		else if (file->stats.st_mode & S_IXUSR)
+			ft_printf("{{red}}");
 	}
 	ft_printf("%s", file->ent->d_name);
 	if (query->flags & F_COLOR)
