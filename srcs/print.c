@@ -12,9 +12,12 @@
 
 #include "ft_ls.h"
 
-void	print_filename(t_file *file, t_query *query, int pad)
+void	print_filename(t_file *file, t_query *query)
 {
-	while (pad--)
+	int	n;
+
+	n = query->name_pad - ft_strlen(file->ent->d_name);
+	while (n--)
 		ft_putchar(' ');
 	if (query->flags & F_COLOR)
 	{
@@ -28,11 +31,34 @@ void	print_filename(t_file *file, t_query *query, int pad)
 		ft_printf("{{eoc}}");
 }
 
-void	print_access(t_file *file, t_query *query)
+void	print_properties(t_file *file, t_query *query)
 {
+	int	n;
+
 	ft_putchar(file->stats.st_mode & S_IFDIR ? 'd' : '-');
 	ft_putchar(file->stats.st_mode & S_IRUSR ? 'r' : '-');
 	ft_putchar(file->stats.st_mode & S_IWUSR ? 'w' : '-');
 	ft_putchar(file->stats.st_mode & S_IXUSR ? 'x' : '-');
-	ft_putstr(" ");
+	ft_putchar(file->stats.st_mode & S_IRGRP ? 'r' : '-');
+	ft_putchar(file->stats.st_mode & S_IWGRP ? 'w' : '-');
+	ft_putchar(file->stats.st_mode & S_IXGRP ? 'x' : '-');
+	ft_putchar(file->stats.st_mode & S_IROTH ? 'r' : '-');
+	ft_putchar(file->stats.st_mode & S_IWOTH ? 'w' : '-');
+	ft_putchar(file->stats.st_mode & S_IXOTH ? 'x' : '-');
+	ft_putchar(' ');
+	n = query->link_pad - ft_nbrlen(file->stats.st_nlink, 10);
+	while (n--)
+		ft_putchar(' ');
+	ft_printf("%d", file->stats.st_nlink);
+	ft_putchar(' ');
+}
+
+void	print_names(t_file *file, t_query *query)
+{
+	int	n;
+
+	n = query->name_pad - ft_strlen(file->group->gr_name);
+	while (n--)
+		ft_putchar(' ');
+	ft_printf("%s", file->group->gr_name);
 }

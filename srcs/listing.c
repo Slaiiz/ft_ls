@@ -12,11 +12,17 @@
 
 #include "ft_ls.h"
 
-static int	printout_file(t_file *file, t_query *query, int padding)
+static int	printout_file(t_file *file, t_query *query)
 {
+	if (file->ent->d_name[0] == '.' && !(query->flags & F_ALL))
+		return (0);
 	if (query->flags & F_LIST)
-		print_access(file, query);
-	print_filename(file, query, padding);
+	{
+		print_properties(file, query);
+		print_names(file, query);
+	}
+	print_filename(file, query);
+	ft_printf("\n");
 	return (0);
 }
 
@@ -46,8 +52,9 @@ static int	search_directory(t_directory *dir, t_query *query)
 		}
 		new = &dir->files[dir->len++];
 		new->ent = ent;
+		new->group = getgrgid(new->stats.st_gid);
 		lstat(ent->d_name, &new->stats);
-		printout_file(new, query, 0);
+		printout_file(new, query);
 	}
 	return (0);
 }

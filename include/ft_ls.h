@@ -13,6 +13,7 @@
 #ifndef FT_LS_H
 # define FT_LS_H
 
+# include <grp.h>
 # include <time.h>
 # include <errno.h>
 # include <stdio.h>
@@ -20,6 +21,7 @@
 # include <dirent.h>
 # include <sys/stat.h>
 # include <sys/xattr.h>
+# include <uuid/uuid.h>
 
 # include "libft.h"
 
@@ -38,12 +40,19 @@ typedef struct		s_query
 	short			flags;
 	const char		*exec;
 	const char		**paths;
+	int				name_pad;
+	int				link_pad;
+	int				user_pad;
+	int				grup_pad;
+	int				size_pad;
+	int				date_pad;
 }					t_query;
 
 typedef struct		s_file
 {
 	struct dirent	*ent;
 	struct stat		stats;
+	struct group	*group;
 }					t_file;
 
 typedef struct		s_directory
@@ -55,7 +64,8 @@ typedef struct		s_directory
 }					t_directory;
 
 int					explore_paths(t_query *query);
-void				print_filename(t_file *file, t_query *query, int pad);
-void				print_access(t_file *file, t_query *query);
+void				print_filename(t_file *file, t_query *query);
+void				print_properties(t_file *file, t_query *query);
+void				print_names(t_file *file, t_query *query);
 
 #endif

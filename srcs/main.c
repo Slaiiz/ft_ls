@@ -38,7 +38,7 @@ static int	parse_flags(int *argc, char ***argv, t_query *query)
 			else
 			{
 				ft_printf("#!fd=2^%s: %s%c\n", query->exec,
-				"illegal option -- ", *args);
+					"illegal option -- ", *args);
 				return (1);
 			}
 		}
@@ -52,6 +52,9 @@ int			main(int argc, char **argv)
 
 	ft_bzero(&query, sizeof(t_query));
 	query.exec = argv[0];
+	query.name_pad = 10;
+	query.link_pad = 10;
+	query.name_pad = 10;
 	ft_seekstr(&query.exec, "./");
 	if (parse_flags(&argc, &argv, &query))
 	{
