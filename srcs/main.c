@@ -16,10 +16,8 @@ static int	parse_flags(int *argc, char ***argv, t_query *query)
 {
 	char	*args;
 
-	while (*argc && --*argc)
+	while (*argc && --*argc && **(++*argv) == '-')
 	{
-		if (**(++*argv) != '-')
-			break ;
 		args = **argv;
 		while (*++args != '\0')
 		{
@@ -51,19 +49,14 @@ int			main(int argc, char **argv)
 	t_query	query;
 
 	ft_bzero(&query, sizeof(t_query));
-	query.exec = argv[0];
-	query.name_pad = 10;
-	query.link_pad = 10;
-	query.name_pad = 10;
-	ft_seekstr(&query.exec, "./");
+	query.exec = ft_strrchr(argv[0], '/') + 1;
 	if (parse_flags(&argc, &argv, &query))
 	{
 		ft_printf("#!fd=2^usage: %s [-alRrt] [file ...]\n", query.exec);
 		return (1);
 	}
-	query.len = argc ? argc : 0;
-	query.paths = argc ? argv : &".";
-	if (explore_paths(&query))
-		return (1);
+	query.paths = argc ? argv : NULL;
+	query.numpaths = argc ? argc : 1;
+	process_query(&query);
 	return (0);
 }

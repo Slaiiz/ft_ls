@@ -14,12 +14,14 @@
 # define FT_LS_H
 
 # include <grp.h>
+# include <pwd.h>
 # include <time.h>
 # include <errno.h>
 # include <stdio.h>
 # include <string.h>
 # include <dirent.h>
 # include <sys/stat.h>
+# include <sys/types.h>
 # include <sys/xattr.h>
 # include <uuid/uuid.h>
 
@@ -34,12 +36,22 @@
 # define F_TIME		   16
 # define F_COLOR	   32
 
+typedef struct		s_file
+{
+	struct stat		stat;
+	struct dirent	*ent;
+	struct s_file	*next;
+	struct passwd	*pwuid;
+	struct group	*grgid;
+}					t_file;
+
 typedef struct		s_query
 {
-	int				len;
 	short			flags;
 	const char		*exec;
-	const char		**paths;
+	char			**paths;
+	int				numpaths;
+	struct s_file	*listing;
 	int				name_pad;
 	int				link_pad;
 	int				user_pad;
@@ -48,24 +60,6 @@ typedef struct		s_query
 	int				date_pad;
 }					t_query;
 
-typedef struct		s_file
-{
-	struct dirent	*ent;
-	struct stat		stats;
-	struct group	*group;
-}					t_file;
-
-typedef struct		s_directory
-{
-	int				len;
-	int				size;
-	DIR				*dir;
-	struct s_file	*files;
-}					t_directory;
-
-int					explore_paths(t_query *query);
-void				print_filename(t_file *file, t_query *query);
-void				print_properties(t_file *file, t_query *query);
-void				print_names(t_file *file, t_query *query);
+void				process_query(t_query *query);
 
 #endif
