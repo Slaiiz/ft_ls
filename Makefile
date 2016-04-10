@@ -1,8 +1,8 @@
 CC      =	gcc
-CFLAGS  =	#-Wall -Wextra -Werror
+CFLAGS  =	-Wall -Wextra -Werror
 NAME    =	ft_ls
 INCLUDE =	include libft/include
-SRCS    =	main.c listing.c # extras.c print.c
+SRCS    =	main.c listing.c helpers.c # print.c
 
 help:
 	@echo "+------------+"

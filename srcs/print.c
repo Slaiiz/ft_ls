@@ -6,7 +6,7 @@
 /*   By: vchesnea <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2016/04/01 18:52:25 by vchesnea          #+#    #+#             */
-/*   Updated: 2016/04/01 18:52:27 by vchesnea         ###   ########.fr       */
+/*   Updated: 2016/04/10 16:32:12 by vchesnea         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -61,4 +61,9 @@ void	print_names(t_file *file, t_query *query)
 	while (n--)
 		ft_putchar(' ');
 	ft_printf("%s", file->group->gr_name);
+}
+
+void	printout_query(t_query *query)
+{
+
 }

@@ -6,7 +6,7 @@
 /*   By: vchesnea <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2016/03/30 14:23:15 by vchesnea          #+#    #+#             */
-/*   Updated: 2016/04/01 15:06:00 by vchesnea         ###   ########.fr       */
+/*   Updated: 2016/04/10 16:32:20 by vchesnea         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -45,13 +45,21 @@ typedef struct		s_file
 	struct group	*grgid;
 }					t_file;
 
+typedef struct		s_dir
+{
+	DIR				*temp;
+	const char		*name;
+	struct s_dir	*next;
+	struct s_file	*files;
+}					t_dir;
+
 typedef struct		s_query
 {
 	short			flags;
 	const char		*exec;
 	char			**paths;
 	int				numpaths;
-	struct s_file	*listing;
+	struct s_dir	*listing;
 	int				name_pad;
 	int				link_pad;
 	int				user_pad;
@@ -61,5 +69,8 @@ typedef struct		s_query
 }					t_query;
 
 void				process_query(t_query *query);
+void				printout_query(t_query *query);
+int					is_a_directory(const char *path);
+int					is_listing_ordered(t_dir *listing);
 
 #endif

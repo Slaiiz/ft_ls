@@ -6,7 +6,7 @@
 /*   By: vchesnea <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2016/03/30 14:23:23 by vchesnea          #+#    #+#             */
-/*   Updated: 2016/04/01 18:52:21 by vchesnea         ###   ########.fr       */
+/*   Updated: 2016/04/10 16:32:06 by vchesnea         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -52,10 +52,12 @@ int			main(int argc, char **argv)
 	query.exec = ft_strrchr(argv[0], '/') + 1;
 	if (parse_flags(&argc, &argv, &query))
 	{
-		ft_printf("#!fd=2^usage: %s [-alRrt] [file ...]\n", query.exec);
+		ft_printf("#!fd=2^usage: %s [-aGlRrt] [file ...]\n", query.exec);
 		return (1);
 	}
-	query.paths = argc ? argv : NULL;
+	if (!argc)
+		argv[0] = ".";
+	query.paths = argv;
 	query.numpaths = argc ? argc : 1;
 	process_query(&query);
 	return (0);

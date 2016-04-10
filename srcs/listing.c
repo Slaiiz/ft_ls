@@ -6,7 +6,7 @@
 /*   By: vchesnea <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2016/04/01 18:52:11 by vchesnea          #+#    #+#             */
-/*   Updated: 2016/04/01 18:52:12 by vchesnea         ###   ########.fr       */
+/*   Updated: 2016/04/10 16:32:00 by vchesnea         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -26,39 +26,6 @@
 // 	return (0);
 // }
 
-// static int	list_files(const char *path, t_query *query)
-// {
-// 	return (0);
-// }
-
-// static int	search_directory(t_directory *dir, t_query *query)
-// {
-// 	struct dirent	*ent;
-// 	t_file			*new;
-//
-// 	while ((ent = readdir(dir->dir)) != NULL)
-// 	{
-// 		if (dir->len + 1 > dir->size)
-// 		{
-// 			if ((new = malloc(sizeof(t_file) * (8 + dir->size))) == NULL)
-// 				return (1);
-// 			if (dir->files != NULL)
-// 			{
-// 				ft_memcpy(new, dir->files, dir->len * sizeof(t_file));
-// 				free(dir->files);
-// 			}
-// 			dir->files = new;
-// 			dir->size += 8;
-// 		}
-// 		new = &dir->files[dir->len++];
-// 		new->ent = ent;
-// 		new->group = getgrgid(new->stats.st_gid);
-// 		lstat(ent->d_name, &new->stats);
-// 		printout_file(new, query);
-// 	}
-// 	return (0);
-// }
-
 // static int	follow_parent_directory(t_query *query)
 // {
 // 	int		n;
@@ -75,51 +42,66 @@
 // 	return (0);
 // }
 
-// int			explore_paths(t_query *query)
+// static void		sort_query(t_query *query)
 // {
-// 	t_directory	dir;
+// 	t_dir	*prev;
+// 	t_dir	*curr;
+// 	t_dir	*next;
 //
-// 	ft_bzero(&dir, sizeof(t_directory));
-// 	if ((dir.dir = opendir(*query->paths)) == NULL)
+// 	prev = query->listing;
+// 	curr = prev->next;
+// 	while (curr)
 // 	{
-// 		if (errno == ENOTDIR && follow_parent_directory(query))
+// 		if (ft_strcmp(prev, curr) > 0)
 // 		{
-// 			ft_printf("%s: %s: %s\n", query->exec,
-// 				*query->paths, strerror(errno));
-// 			return (1);
+// 			prev->next = curr->next;
+// 			curr->next = prev;
+// 			if (prev == query->listing)
+// 				query->listing = curr;
+//
 // 		}
-// 		else if (errno == ENOENT)
-// 		{
-// 			ft_printf("%s: %s: %s\n", query->exec,
-// 				*query->paths, strerror(errno));
-// 			return (1);
-// 		}
-// 		return (explore_paths(query));
+// 		prev = curr;
+// 		curr = curr->next;
 // 	}
-// 	return (search_directory(&dir, query));
 // }
+//                 +------------+
+//                 |            v
+// [abc] -> [daz] -> [bod] -> [NULL]
+//            ^             |
+//            +-------------+
 
-static int	is_a_directory(const char *path)
+static void		sort_query(t_query *query)
 {
-	return (path[ft_strlen(path) - 1] == '/');
+	t_dir	*prev;
+	t_dir	*curr;
+	t_dir	*next;
+
+	prev = NULL;
+	curr = query->listing;
+	next = curr->next;
+
+	while (next)
+	{
+		
+	}
 }
 
-static void	append_file(t_query *query, const char *path, struct stat *stat)
+static void		append_file(t_dir *dir, const char *path, struct stat *stat)
 {
 	t_file	*new;
 	t_file	*cur;
 
-	ft_printf("Appending file '%s'\n", path);
+	ft_printf("{{red}}Appending file{{eoc}} '%s'\n", path);
 	if ((new = malloc(sizeof(t_file))) == NULL)
 		return ;
 	new->next = NULL;
 	new->stat = *stat;
 	new->pwuid = getpwuid(stat->st_uid);
 	new->grgid = getgrgid(stat->st_gid);
-	cur = query->listing;
+	cur = dir->files;
 	if (cur == NULL)
 	{
-		query->listing = new;
+		dir->files = new;
 		return ;
 	}
 	while (cur->next)
@@ -127,55 +109,86 @@ static void	append_file(t_query *query, const char *path, struct stat *stat)
 	cur->next = new;
 }
 
-static void	search_directory(t_query *query, DIR *dir, const char *path)
+static t_dir	*append_directory(t_query *query, const char *path)
 {
+	t_dir	*new;
+	t_dir	*cur;
+
+	ft_printf("{{red}}Appending directory{{eoc}} '%s'\n", path);
+	if ((new = malloc(sizeof(t_dir))) == NULL)
+		return (NULL);
+	if ((new->temp = opendir(path)) == NULL)
+	{
+		ft_printf("%s: %s: %s\n", query->exec, path, strerror(errno));
+		return (NULL);
+	}
+	new->files = NULL;
+	new->next = NULL;
+	new->name = path;
+	cur = query->listing;
+	if (cur == NULL)
+	{
+		query->listing = new;
+		return (new);
+	}
+	while (cur->next)
+		cur = cur->next;
+	cur->next = new;
+	return (new);
+}
+
+static void		search_directory(t_query *query, const char *path)
+{
+	t_dir			*dir;
 	struct stat		stat;
 	struct dirent	*ent;
-	DIR				*new;
 	char			*join;
 
 	path = ft_strjoin(path, is_a_directory(path) ? "" : "/");
-	while ((ent = readdir(dir)))
+	if ((dir = append_directory(query, path)) == NULL)
+		return ;
+	while ((ent = readdir(dir->temp)))
 	{
-		if (!ft_strcmp(ent->d_name, ".") || !ft_strcmp(ent->d_name, ".."))
+		if ((!ft_strncmp(ent->d_name, ".", 1) && !(query->flags & F_ALL))
+			|| !ft_strcmp(ent->d_name, ".") || !ft_strcmp(ent->d_name, ".."))
 			continue ;
 		join = ft_strjoin(path, ent->d_name);
 		lstat(join, &stat);
 		if (stat.st_mode & S_IFDIR && (query->flags & F_RECURSIVE))
 		{
 			ft_printf("%s is a directory\n", join);
-			search_directory(query, opendir(join), join);
+			search_directory(query, join);
 			continue ;
 		}
-		append_file(query, join, &stat);
+		append_file(dir, join, &stat);
 		ft_strdel(&join);
 	}
 	ft_strdel((char**)&path);
-	closedir(dir);
+	closedir(dir->temp);
 }
 
-void		process_query(t_query *query)
+void			process_query(t_query *query)
 {
-	struct stat	stat;
-	DIR			*dir;
+	struct stat	stats;
 	const char	*path;
+	t_dir		*dir;
 
-	path = ".";
+	if ((dir = append_directory(query, ".")) == NULL)
+		return ;
 	while (query->numpaths--)
 	{
-		if (query->paths != NULL)
-			path = query->paths[query->numpaths];
-		if ((dir = opendir(path)) == NULL)
+		path = query->paths[query->numpaths];
+		if (stat(path, &stats))
+			ft_printf("%s: %s: %s\n", query->exec, path, strerror(errno));
+		else
 		{
-			if ((errno == ENOTDIR && is_a_directory(path)) || errno == ENOENT)
-				ft_printf("%s: %s: %s\n", query->exec, path, strerror(errno));
-			else
+			if (!(stats.st_mode & S_IFDIR))
 			{
-				lstat(path, &stat);
-				append_file(query, path, &stat);
+				append_file(dir, path, &stats);
+				continue ;
 			}
-			continue ;
+			search_directory(query, path);
 		}
-		search_directory(query, dir, path);
 	}
+
 }
