@@ -70,32 +70,33 @@
 //            ^             |
 //            +-------------+
 
-static void		sort_query(t_query *query)
-{
-	t_dir	*prev;
-	t_dir	*curr;
-	t_dir	*next;
+// static void		sort_query(t_query *query)
+// {
+// 	t_dir	*prev;
+// 	t_dir	*curr;
+// 	t_dir	*next;
+//
+// 	prev = NULL;
+// 	curr = query->listing;
+// 	next = curr->next;
+//
+// 	while (next)
+// 	{
+//
+// 	}
+// }
 
-	prev = NULL;
-	curr = query->listing;
-	next = curr->next;
-
-	while (next)
-	{
-		
-	}
-}
-
-static void		append_file(t_dir *dir, const char *path, struct stat *stat)
+static void		append_file(t_dir *dir, const char *name, struct stat *stat)
 {
 	t_file	*new;
 	t_file	*cur;
 
-	ft_printf("{{red}}Appending file{{eoc}} '%s'\n", path);
+	ft_printf("{{red}}Appending file{{eoc}} '%s'\n", name);
 	if ((new = malloc(sizeof(t_file))) == NULL)
 		return ;
 	new->next = NULL;
-	new->stat = *stat;
+	new->name = name;
+	new->stats = *stat;
 	new->pwuid = getpwuid(stat->st_uid);
 	new->grgid = getgrgid(stat->st_gid);
 	cur = dir->files;
@@ -160,7 +161,7 @@ static void		search_directory(t_query *query, const char *path)
 			search_directory(query, join);
 			continue ;
 		}
-		append_file(dir, join, &stat);
+		append_file(dir, ent->d_name, &stat);
 		ft_strdel(&join);
 	}
 	ft_strdel((char**)&path);
@@ -184,11 +185,14 @@ void			process_query(t_query *query)
 		{
 			if (!(stats.st_mode & S_IFDIR))
 			{
-				append_file(dir, path, &stats);
+				append_file(dir, strip_leading(path), &stats);
 				continue ;
 			}
 			search_directory(query, path);
 		}
 	}
-
+	query->grup_pad = 10;
+	query->name_pad = 15;
+	query->link_pad = 5;
+	return (printout_listing(query));
 }

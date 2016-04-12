@@ -12,13 +12,10 @@
 
 #include "ft_ls.h"
 
-void	print_filename(t_file *file, t_query *query)
+static void	print_filename(t_file *file, t_query *query)
 {
 	int	n;
 
-	n = query->name_pad - ft_strlen(file->ent->d_name);
-	while (n--)
-		ft_putchar(' ');
 	if (query->flags & F_COLOR)
 	{
 		if (file->stats.st_mode & S_IFDIR)
@@ -26,12 +23,15 @@ void	print_filename(t_file *file, t_query *query)
 		else if (file->stats.st_mode & S_IXUSR)
 			ft_printf("{{red}}");
 	}
-	ft_printf("%s", file->ent->d_name);
+	ft_printf("%s", file->name);
 	if (query->flags & F_COLOR)
 		ft_printf("{{eoc}}");
+	n = query->name_pad - ft_strlen(file->name);
+	while (n--)
+		ft_putchar(' ');
 }
 
-void	print_properties(t_file *file, t_query *query)
+static void	print_properties(t_file *file, t_query *query)
 {
 	int	n;
 
@@ -53,17 +53,38 @@ void	print_properties(t_file *file, t_query *query)
 	ft_putchar(' ');
 }
 
-void	print_names(t_file *file, t_query *query)
+static void	print_owners(t_file *file, t_query *query)
 {
 	int	n;
 
-	n = query->name_pad - ft_strlen(file->group->gr_name);
+	ft_printf("%s", file->grgid->gr_name);
+	n = query->grup_pad - ft_strlen(file->grgid->gr_name) + 1;
 	while (n--)
 		ft_putchar(' ');
-	ft_printf("%s", file->group->gr_name);
 }
 
-void	printout_query(t_query *query)
+void	printout_listing(t_query *query)
 {
+	t_dir	*listing;
+	t_file	*files;
 
+	listing = query->listing;
+	if (listing->next)
+		listing = listing->next;
+	while (listing)
+	{
+		files = listing->files;
+		while (files)
+		{
+			if (query->flags & F_LIST)
+			{
+				print_properties(files, query);
+				print_owners(files, query);
+			}
+			print_filename(files, query);
+			ft_putchar('\n');
+			files = files->next;
+		}
+		listing = listing->next;
+	}
 }

@@ -12,12 +12,24 @@
 
 #include "ft_ls.h"
 
-int	is_a_directory(const char *path)
+const char	*strip_leading(const char *path)
+{
+	const char	*tmp;
+
+	tmp = ft_strrchr(path, '/');
+	if (tmp != NULL)
+	{
+		return (tmp + 1);
+	}
+	return (path);
+}
+
+int			is_a_directory(const char *path)
 {
 	return (path[ft_strlen(path) - 1] == '/');
 }
 
-int	is_listing_ordered(t_dir *listing)
+int			is_listing_ordered(t_dir *listing)
 {
 	t_dir	*prev;
 	t_dir	*curr;
