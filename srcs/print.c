@@ -91,26 +91,27 @@ static void	print_right_part(t_file *file, t_query *query)
 
 void	printout_listing(t_query *query)
 {
-	t_dir	*listing;
-	t_file	*files;
+	t_file	*file;
+	t_dir	*dir;
 
-	listing = query->listing;
-	if (listing->next)
-		listing = listing->next;
-	while (listing)
+	dir = query->listing;
+//	if (dir->next)
+//		dir = dir->next;
+	while (dir)
 	{
-		ft_printf("{{green}}Printout of directory: {{eoc}}%s\n", listing->name);
-		files = listing->files;
-		while (files)
+		ft_printf("{{green}}Printout of directory: {{eoc}}%s\n", dir->name);
+		ft_printmem(dir, sizeof(t_dir));
+		file = dir->files;
+		while (file)
 		{
 			if (query->flags & F_LIST)
 			{
-				print_left_part(files, query);
-				print_center_part(files, query);
+				print_left_part(file, query);
+				print_center_part(file, query);
 			}
-			print_right_part(files, query);
-			files = files->next;
+			print_right_part(file, query);
+			file = file->next;
 		}
-		listing = listing->next;
+		dir = dir->next;
 	}
 }
