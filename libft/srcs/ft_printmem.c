@@ -6,88 +6,59 @@
 /*   By: vchesnea <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2015/12/04 10:34:55 by vchesnea          #+#    #+#             */
-/*   Updated: 2015/12/04 11:22:31 by vchesnea         ###   ########.fr       */
+/*   Updated: 2016/04/18 17:00:17 by vchesnea         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "libft.h"
 
-static void	printaddr(void *addr)
+static void	print_hex(void *addr, size_t size)
 {
-	size_t	len;
+	char	n;
 
-	len = 8 - ft_nbrlen((size_t)addr, 16);
-	while (len--)
-		ft_putchar('0');
-	ft_putnbr_base((size_t)addr, 16);
-	return ;
-}
-
-static void	printbyte(void **addr, int n)
-{
-	size_t	len;
-
-	ft_putstr(" ");
-	while (n--)
+	while (size--)
 	{
-		ft_putchar(' ');
-		len = 2 - ft_nbrlen(**(int**)addr & 0xFF, 16);
-		while (len--)
-			ft_putchar('0');
-		ft_putnbr_base(**(int**)addr & 0xFF, 16);
-		(*addr)++;
+		n = *(char*)addr++;
+		ft_putchar("0123456789abcdef"[(n >> 4) & 15]);
+		ft_putchar("0123456789abcdef"[(n >> 0) & 15]);
+		if (!(size & 1))
+			ft_putchar(' ');
 	}
-	return ;
 }
 
-static void	printascii(void **addr, int n)
+static void	print_asc(void *addr, size_t size)
 {
-	int	byte;
+	char	n;
 
-	ft_putstr("  ");
-	while (n--)
+	while (size--)
 	{
-		byte = **(int**)addr & 0xFF;
-		if (ft_isprint(byte))
-			ft_putchar(byte);
-		else
+		n = *(char*)addr++;
+		if (!ft_isprint(n))
 			ft_putchar('.');
-		(*addr)++;
+		if (ft_isprint(n))
+			ft_putchar(n);
 	}
-	return ;
 }
 
-static void	printpad(char c, int n)
+void		ft_printmem(void *addr, size_t size)
 {
-	while (n--)
-	{
-		ft_putchar(c);
-		ft_putchar(c);
-		ft_putchar(c);
-	}
-	return ;
-}
+	size_t	i;
 
-void		ft_printmem(void *addr, size_t len)
-{
-	void	*bak;
-
-	bak = addr;
-	while (len >= 16)
+	while (size > 15)
 	{
-		printaddr(addr);
-		printbyte(&addr, 16);
-		printascii(&bak, 16);
+		print_hex(addr, 16);
+		print_asc(addr, 16);
 		ft_putchar('\n');
-		len -= 16;
+		addr += 16;
+		size -= 16;
 	}
-	if (len > 0)
+	if (size)
 	{
-		printaddr(addr);
-		printbyte(&addr, len);
-		printpad(' ', 16 - len);
-		printascii(&bak, len);
+		print_hex(addr, size);
+		i = 3 * (16 - size);
+		while (i--)
+			ft_putchar(' ');
+		print_asc(addr, size);
+		ft_putchar('\n');
 	}
-	ft_putchar('\n');
-	return ;
 }
