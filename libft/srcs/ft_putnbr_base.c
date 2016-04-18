@@ -18,5 +18,6 @@ void	ft_putnbr_base(int n, int base)
 
 	str = ft_itoa_base(n, base);
 	write(1, str, ft_strlen(str));
+	free(str);
 	return ;
 }
