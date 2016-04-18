@@ -12,6 +12,11 @@
 
 #include "ft_ls.h"
 
+/*
+** strip_leading: Return the text following the rightmost slash '/'.
+** Essentially to get the filename out of a path.
+*/
+
 const char	*strip_leading(const char *path)
 {
 	const char	*tmp;
@@ -24,10 +29,20 @@ const char	*strip_leading(const char *path)
 	return (path);
 }
 
+/*
+** is_a_directory: Returns TRUE if the given path implies a directory.
+** Else, returns FALSE.
+*/
+
 int			is_a_directory(const char *path)
 {
 	return (path[ft_strlen(path) - 1] == '/');
 }
+
+/*
+** is_listing_ordered: Returns TRUE if the given listing is correctly ordered.
+** Else, returns FALSE.
+*/
 
 int			is_listing_ordered(t_dir *listing)
 {

@@ -86,6 +86,10 @@
 // 	}
 // }
 
+/*
+** append_file: Add a file entry in the current directory entry.
+*/
+
 static void		append_file(t_dir *dir, const char *name, struct stat *stat)
 {
 	t_file	*new;
@@ -109,6 +113,10 @@ static void		append_file(t_dir *dir, const char *name, struct stat *stat)
 		cur = cur->next;
 	cur->next = new;
 }
+
+/*
+** append_directory: Add a directory entry in the listing.
+*/
 
 static t_dir	*append_directory(t_query *query, const char *path)
 {
@@ -137,6 +145,11 @@ static t_dir	*append_directory(t_query *query, const char *path)
 	cur->next = new;
 	return (new);
 }
+
+/*
+** search_directory: Recursively collect data on files contained in the current
+** working path, each directory encountered adds an entry in the listing.
+*/
 
 static void		search_directory(t_query *query, const char *path)
 {
@@ -168,6 +181,13 @@ static void		search_directory(t_query *query, const char *path)
 	closedir(dir->temp);
 }
 
+/*
+** process_query: Where it all begins. First create a dummy directory pointing
+** at the current working path. In the event a file is queried, it is assumed
+** to be contained in that directory. For each query, if it is a directory,
+** call search_directory. If it is not, attach it to the dummy directory.
+*/
+
 void			process_query(t_query *query)
 {
 	struct stat	stats;
@@ -185,14 +205,16 @@ void			process_query(t_query *query)
 		{
 			if (!(stats.st_mode & S_IFDIR))
 			{
-				append_file(dir, strip_leading(path), &stats);
+				append_file(dir, path, &stats);
 				continue ;
 			}
 			search_directory(query, path);
 		}
 	}
+	query->link_pad = 1;
 	query->grup_pad = 10;
-	query->name_pad = 15;
-	query->link_pad = 5;
+	query->user_pad = 8;
+	query->name_pad = 9;
+	query->size_pad = 5;
 	return (printout_listing(query));
 }

@@ -12,26 +12,11 @@
 
 #include "ft_ls.h"
 
-static void	print_filename(t_file *file, t_query *query)
-{
-	int	n;
+/*
+** print_left_part: Print the file attributes and its links.
+*/
 
-	if (query->flags & F_COLOR)
-	{
-		if (file->stats.st_mode & S_IFDIR)
-			ft_printf("{{blue}}");
-		else if (file->stats.st_mode & S_IXUSR)
-			ft_printf("{{red}}");
-	}
-	ft_printf("%s", file->name);
-	if (query->flags & F_COLOR)
-		ft_printf("{{eoc}}");
-	n = query->name_pad - ft_strlen(file->name);
-	while (n--)
-		ft_putchar(' ');
-}
-
-static void	print_properties(t_file *file, t_query *query)
+static void	print_left_part(t_file *file, t_query *query)
 {
 	int	n;
 
@@ -45,23 +30,64 @@ static void	print_properties(t_file *file, t_query *query)
 	ft_putchar(file->stats.st_mode & S_IROTH ? 'r' : '-');
 	ft_putchar(file->stats.st_mode & S_IWOTH ? 'w' : '-');
 	ft_putchar(file->stats.st_mode & S_IXOTH ? 'x' : '-');
-	ft_putchar(' ');
+	ft_putstr("  ");
 	n = query->link_pad - ft_nbrlen(file->stats.st_nlink, 10);
 	while (n--)
 		ft_putchar(' ');
-	ft_printf("%d", file->stats.st_nlink);
-	ft_putchar(' ');
+	ft_printf("%d ", file->stats.st_nlink);
 }
 
-static void	print_owners(t_file *file, t_query *query)
+/*
+** print_center_part: Print the owner's name & group and the file size.
+*/
+
+static void	print_center_part(t_file *file, t_query *query)
 {
 	int	n;
 
-	ft_printf("%s", file->grgid->gr_name);
-	n = query->grup_pad - ft_strlen(file->grgid->gr_name) + 1;
+	n = query->user_pad - ft_strlen(file->pwuid->pw_name);
 	while (n--)
 		ft_putchar(' ');
+	ft_printf("%s  ", file->pwuid->pw_name);
+	n = query->grup_pad - ft_strlen(file->grgid->gr_name);
+	while (n--)
+		ft_putchar(' ');
+	ft_printf("%s  ", file->grgid->gr_name);
+	n = query->size_pad - ft_nbrlen(file->stats.st_size, 10);
+	while (n--)
+		ft_putchar(' ');
+	ft_printf("%lu ", file->stats.st_size);
 }
+
+/*
+** print_right_part: Print the access time and the filename.
+*/
+
+static void	print_right_part(t_file *file, t_query *query)
+{
+	int		n;
+
+	if (query->flags & F_LIST)
+		ft_printf("%.12s ", ctime(&file->stats.st_mtimespec.tv_sec) + 4);
+	if (query->flags & F_COLOR)
+	{
+		if (file->stats.st_mode & S_IFDIR)
+			ft_printf("{{blue}}");
+		else if (file->stats.st_mode & S_IXUSR)
+			ft_printf("{{red}}");
+	}
+	ft_printf("%s", file->name);
+	if (query->flags & F_COLOR)
+		ft_printf("{{eoc}}");
+	if (query->flags & F_LIST)
+		ft_putchar('\n');
+}
+
+/*
+** printout_listing: The last step in the program, print everything so far.
+** We skip the first dummy list element (If no directory is queried, it will
+** contain all the queried files).
+*/
 
 void	printout_listing(t_query *query)
 {
@@ -73,16 +99,16 @@ void	printout_listing(t_query *query)
 		listing = listing->next;
 	while (listing)
 	{
+		ft_printf("{{green}}Printout of directory: {{eoc}}%s\n", listing->name);
 		files = listing->files;
 		while (files)
 		{
 			if (query->flags & F_LIST)
 			{
-				print_properties(files, query);
-				print_owners(files, query);
+				print_left_part(files, query);
+				print_center_part(files, query);
 			}
-			print_filename(files, query);
-			ft_putchar('\n');
+			print_right_part(files, query);
 			files = files->next;
 		}
 		listing = listing->next;
