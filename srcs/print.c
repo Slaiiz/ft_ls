@@ -65,7 +65,7 @@ static void	print_center_part(t_file *file, t_query *query)
 
 static void	print_right_part(t_file *file, t_query *query)
 {
-	int		n;
+	int	n;
 
 	if (query->flags & F_LIST)
 		ft_printf("%.12s ", ctime(&file->stats.st_mtimespec.tv_sec) + 4);
@@ -85,22 +85,26 @@ static void	print_right_part(t_file *file, t_query *query)
 
 /*
 ** printout_listing: The last step in the program, print everything so far.
-** We skip the first dummy list element (If no directory is queried, it will
-** contain all the queried files).
+** We skip the first dummy list element (If files were queried, it will
+** contain all of them).
 */
 
 void	printout_listing(t_query *query)
 {
+	int		multiple;
 	t_file	*file;
 	t_dir	*dir;
 
 	dir = query->listing;
-//	if (dir->next)
-//		dir = dir->next;
+	if (dir->next)
+		dir = dir->next;
+	multiple = dir->next != NULL;
 	while (dir)
 	{
-		ft_printf("{{green}}Printout of directory: {{eoc}}%s\n", dir->name);
-		ft_printmem(dir, sizeof(t_dir));
+		if (multiple)
+			ft_printf("%s:\n", strip_slashes(dir->name));
+		if (query->flags & F_LIST)
+			ft_printf("total %lu\n", get_directory_blocksize(dir));
 		file = dir->files;
 		while (file)
 		{
@@ -113,5 +117,7 @@ void	printout_listing(t_query *query)
 			file = file->next;
 		}
 		dir = dir->next;
+		if (multiple && dir)
+			ft_printf("\n");
 	}
 }

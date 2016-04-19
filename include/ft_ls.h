@@ -48,7 +48,7 @@ typedef struct		s_file
 typedef struct		s_dir
 {
 	DIR				*temp;
-	const char		*name;
+	char			*name;
 	struct s_dir	*next;
 	struct s_file	*files;
 }					t_dir;
@@ -71,7 +71,8 @@ typedef struct		s_query
 void				process_query(t_query *query);
 void				printout_listing(t_query *query);
 
-const char			*strip_leading(const char *path);
+int					get_directory_blocksize(t_dir *dir);
+char				*strip_slashes(char *path);
 int					is_a_directory(const char *path);
 int					is_listing_ordered(t_dir *listing);
 

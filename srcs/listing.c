@@ -12,90 +12,41 @@
 
 #include "ft_ls.h"
 
-// static int	printout_file(t_file *file, t_query *query)
-// {
-// 	if (new->ent->d_name[0] == '.' && !(query->flags & F_ALL))
-// 		return (0);
-// 	if (query->flags & F_LIST)
-// 	{
-// 		print_properties(file, query);
-// 		print_names(file, query);
-// 	}
-// 	print_filename(file, query);
-// 	ft_printf("\n");
-// 	return (0);
-// }
-
-// static int	follow_parent_directory(t_query *query)
-// {
-// 	int		n;
-// 	char	*s;
-//
-// 	n = ft_strlen(*query->paths);
-// 	s = ft_strrchr(*query->paths, '/');
-// 	if (s - *query->paths == n - 1)
-// 		return (1);
-// 	else if (s == NULL)
-// 		*query->paths = ".";
-// 	else
-// 		*s = '\0';
-// 	return (0);
-// }
-
-// static void		sort_query(t_query *query)
-// {
-// 	t_dir	*prev;
-// 	t_dir	*curr;
-// 	t_dir	*next;
-//
-// 	prev = query->listing;
-// 	curr = prev->next;
-// 	while (curr)
-// 	{
-// 		if (ft_strcmp(prev, curr) > 0)
-// 		{
-// 			prev->next = curr->next;
-// 			curr->next = prev;
-// 			if (prev == query->listing)
-// 				query->listing = curr;
-//
-// 		}
-// 		prev = curr;
-// 		curr = curr->next;
-// 	}
-// }
-//                 +------------+
-//                 |            v
-// [abc] -> [daz] -> [bod] -> [NULL]
-//            ^             |
-//            +-------------+
-
-// static void		sort_query(t_query *query)
-// {
-// 	t_dir	*prev;
-// 	t_dir	*curr;
-// 	t_dir	*next;
-//
-// 	prev = NULL;
-// 	curr = query->listing;
-// 	next = curr->next;
-//
-// 	while (next)
-// 	{
-//
-// 	}
-// }
-
 /*
 ** append_file: Add a file entry in the current directory entry.
+** TODO
 */
+
+static void		get_query_paddings(t_query *query)
+{
+	t_file	*file;
+	t_dir	*dir;
+
+	dir = query->listing;
+	while (dir)
+	{
+		file = dir->files;
+		while (file)
+		{
+			if (ft_nbrlen(file->stats.st_link) > query->link_pad)
+				query->link_pad = ft_nbrlen(file->stats.st_link);
+			if (ft_strlen(file->pwuid->pw_name) > query->user_pad)
+				query->user_pad = ft_strlen(file->pwuid->pwname);
+			if (ft_strlen(file->grgid->gr_name) > query->grup_pad)
+				query->grup_pad = ft_strlen(file->grgid->gr_name);
+			if (ft_nbrlen(file->stats->st_size) > query->size_pad)
+				query->size_pad = ft_nbrlen(file->stats.st_size);
+		}
+		dir = dir->next;
+	}
+}
 
 static void		append_file(t_dir *dir, const char *name, struct stat *stat)
 {
 	t_file	*new;
 	t_file	*cur;
 
-	ft_printf("{{red}}Appending file{{eoc}} '%s'\n", name);
+//	ft_printf("{{red}}Appending file{{eoc}} '%s'\n", name);
 	if ((new = malloc(sizeof(t_file))) == NULL)
 		return ;
 	new->next = NULL;
@@ -118,12 +69,12 @@ static void		append_file(t_dir *dir, const char *name, struct stat *stat)
 ** append_directory: Add a directory entry in the listing.
 */
 
-static t_dir	*append_directory(t_query *query, const char *path)
+static t_dir	*append_directory(t_query *query, char *path)
 {
 	t_dir	*new;
 	t_dir	*cur;
 
-	ft_printf("{{red}}Appending directory{{eoc}} '%s'\n", path);
+//	ft_printf("{{red}}Appending directory{{eoc}} '%s'\n", path);
 	if ((new = malloc(sizeof(t_dir))) == NULL)
 		return (NULL);
 	if ((new->temp = opendir(path)) == NULL)
@@ -149,22 +100,23 @@ static t_dir	*append_directory(t_query *query, const char *path)
 /*
 ** search_directory: Recursively collect data on files contained in the current
 ** working path, each directory encountered adds an entry in the listing.
+** TODO: Free pointer 'path'.
 */
 
-static void		search_directory(t_query *query, const char *path)
+static void		search_directory(t_query *query, char *path)
 {
+	char			*join;
 	t_dir			*dir;
 	struct stat		stat;
 	struct dirent	*ent;
-	char			*join;
 
 	path = ft_strjoin(path, is_a_directory(path) ? "" : "/");
 	if ((dir = append_directory(query, path)) == NULL)
 		return ;
 	while ((ent = readdir(dir->temp)))
 	{
-		if ((!ft_strncmp(ent->d_name, ".", 1) && !(query->flags & F_ALL))
-			|| !ft_strcmp(ent->d_name, ".") || !ft_strcmp(ent->d_name, ".."))
+		if ((!ft_strcmp(ent->d_name, ".") || !ft_strcmp(ent->d_name, ".."))
+			&& !(query->flags & F_ALL))
 			continue ;
 		join = ft_strjoin(path, ent->d_name);
 		lstat(join, &stat);
@@ -177,7 +129,6 @@ static void		search_directory(t_query *query, const char *path)
 		append_file(dir, ent->d_name, &stat);
 		ft_strdel(&join);
 	}
-	ft_strdel((char**)&path);
 	closedir(dir->temp);
 }
 
@@ -191,14 +142,14 @@ static void		search_directory(t_query *query, const char *path)
 void			process_query(t_query *query)
 {
 	struct stat	stats;
-	const char	*path;
+	char		*path;
 	t_dir		*dir;
 
 	if ((dir = append_directory(query, ".")) == NULL)
 		return ;
 	while (query->numpaths--)
 	{
-		path = query->paths[query->numpaths];
+		path = *query->paths++;
 		if (stat(path, &stats))
 			ft_printf("%s: %s: %s\n", query->exec, path, strerror(errno));
 		else
@@ -211,10 +162,5 @@ void			process_query(t_query *query)
 			search_directory(query, path);
 		}
 	}
-	query->link_pad = 1;
-	query->grup_pad = 10;
-	query->user_pad = 8;
-	query->name_pad = 9;
-	query->size_pad = 5;
-	return (printout_listing(query));
+	set_query_paddings(query);
 }

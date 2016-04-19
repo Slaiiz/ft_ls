@@ -13,35 +13,41 @@
 #include "ft_ls.h"
 
 /*
-** strip_leading: Return the text following the rightmost slash '/'.
-** Essentially to get the filename out of a path.
+** strip_slashes: Return the text preceeding the rightmost slashes '/'.
 */
 
-const char	*strip_leading(const char *path)
+char		*strip_slashes(char *path)
 {
-	const char	*tmp;
+	char	*tmp;
 
-	tmp = ft_strrchr(path, '/');
-	if (tmp != NULL)
-	{
-		return (tmp + 1);
-	}
+	while ((tmp = ft_strrchr(path, '/')))
+		*tmp = '\0';
 	return (path);
 }
 
 /*
-** is_a_directory: Returns TRUE if the given path implies a directory.
-** Else, returns FALSE.
+** get_directory_blocksize: Return the number of data blocks allocated by the
+** given directory.
 */
 
-int			is_a_directory(const char *path)
+int			get_directory_blocksize(t_dir *dir)
 {
-	return (path[ft_strlen(path) - 1] == '/');
+	t_file	*curr;
+	size_t	total;
+
+	total = 0;
+	curr = dir->files;
+	while (curr)
+	{
+		total += curr->stats.st_blocks;
+		curr = curr->next;
+	}
+	return (total);
 }
 
 /*
-** is_listing_ordered: Returns TRUE if the given listing is correctly ordered.
-** Else, returns FALSE.
+** is_listing_ordered: Return TRUE if the given listing is correctly ordered.
+** Else, return FALSE.
 */
 
 int			is_listing_ordered(t_dir *listing)
@@ -59,4 +65,14 @@ int			is_listing_ordered(t_dir *listing)
 		curr = curr->next;
 	}
 	return (1);
+}
+
+/*
+** is_a_directory: Return TRUE if the given path implies a directory.
+** Else, return FALSE.
+*/
+
+int			is_a_directory(const char *path)
+{
+	return (path[ft_strlen(path) - 1] == '/');
 }
