@@ -27,8 +27,6 @@
 
 # include "libft.h"
 
-# define INC_FACTOR		8
-
 # define F_LIST			1
 # define F_RECURSIVE	2
 # define F_ALL			4
@@ -65,10 +63,9 @@ typedef struct		s_query
 	int				user_pad;
 	int				grup_pad;
 	int				size_pad;
-	int				date_pad;
 }					t_query;
 
-void				process_query(t_query *query);
+int					process_query(t_query *query);
 void				printout_listing(t_query *query);
 
 int					get_directory_blocksize(t_dir *dir);

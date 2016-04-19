@@ -45,14 +45,14 @@ static void	print_center_part(t_file *file, t_query *query)
 {
 	int	n;
 
+	ft_printf("%s  ", file->pwuid->pw_name);
 	n = query->user_pad - ft_strlen(file->pwuid->pw_name);
 	while (n--)
 		ft_putchar(' ');
-	ft_printf("%s  ", file->pwuid->pw_name);
+	ft_printf("%s  ", file->grgid->gr_name);
 	n = query->grup_pad - ft_strlen(file->grgid->gr_name);
 	while (n--)
 		ft_putchar(' ');
-	ft_printf("%s  ", file->grgid->gr_name);
 	n = query->size_pad - ft_nbrlen(file->stats.st_size, 10);
 	while (n--)
 		ft_putchar(' ');
@@ -103,7 +103,7 @@ void	printout_listing(t_query *query)
 	{
 		if (multiple)
 			ft_printf("%s:\n", strip_slashes(dir->name));
-		if (query->flags & F_LIST)
+		if (multiple && (query->flags & F_LIST))
 			ft_printf("total %lu\n", get_directory_blocksize(dir));
 		file = dir->files;
 		while (file)

@@ -13,11 +13,11 @@
 #include "ft_ls.h"
 
 /*
-** append_file: Add a file entry in the current directory entry.
-** TODO
+** set_query_paddings: Take note of the longest strings ft_ls is going to have
+** to print, so as to keep every information perfectly aligned.
 */
 
-static void		get_query_paddings(t_query *query)
+static void		set_query_paddings(t_query *query)
 {
 	t_file	*file;
 	t_dir	*dir;
@@ -28,27 +28,34 @@ static void		get_query_paddings(t_query *query)
 		file = dir->files;
 		while (file)
 		{
-			if (ft_nbrlen(file->stats.st_link) > query->link_pad)
-				query->link_pad = ft_nbrlen(file->stats.st_link);
+			if (ft_nbrlen(file->stats.st_nlink, 10) > query->link_pad)
+				query->link_pad = ft_nbrlen(file->stats.st_nlink, 10);
 			if (ft_strlen(file->pwuid->pw_name) > query->user_pad)
-				query->user_pad = ft_strlen(file->pwuid->pwname);
+				query->user_pad = ft_strlen(file->pwuid->pw_name);
 			if (ft_strlen(file->grgid->gr_name) > query->grup_pad)
 				query->grup_pad = ft_strlen(file->grgid->gr_name);
-			if (ft_nbrlen(file->stats->st_size) > query->size_pad)
-				query->size_pad = ft_nbrlen(file->stats.st_size);
+			if (ft_nbrlen(file->stats.st_size, 10) > query->size_pad)
+				query->size_pad = ft_nbrlen(file->stats.st_size, 10);
+			if (ft_strlen(file->name) > query->name_pad)
+				query->name_pad = ft_strlen(file->name);
+			file = file->next;
 		}
 		dir = dir->next;
 	}
 }
 
-static void		append_file(t_dir *dir, const char *name, struct stat *stat)
+/*
+** append_file: Add a file entry in the current directory entry.
+*/
+
+static t_file	*append_file(t_dir *dir, const char *name, struct stat *stat)
 {
 	t_file	*new;
 	t_file	*cur;
 
-//	ft_printf("{{red}}Appending file{{eoc}} '%s'\n", name);
+	ft_printf("{{red}}Appending file{{eoc}} '%s'\n", name);
 	if ((new = malloc(sizeof(t_file))) == NULL)
-		return ;
+		return (NULL);
 	new->next = NULL;
 	new->name = name;
 	new->stats = *stat;
@@ -58,11 +65,12 @@ static void		append_file(t_dir *dir, const char *name, struct stat *stat)
 	if (cur == NULL)
 	{
 		dir->files = new;
-		return ;
+		return (new);
 	}
 	while (cur->next)
 		cur = cur->next;
 	cur->next = new;
+	return (new);
 }
 
 /*
@@ -74,7 +82,7 @@ static t_dir	*append_directory(t_query *query, char *path)
 	t_dir	*new;
 	t_dir	*cur;
 
-//	ft_printf("{{red}}Appending directory{{eoc}} '%s'\n", path);
+	ft_printf("{{red}}Appending directory{{eoc}} '%s'\n", path);
 	if ((new = malloc(sizeof(t_dir))) == NULL)
 		return (NULL);
 	if ((new->temp = opendir(path)) == NULL)
@@ -100,10 +108,11 @@ static t_dir	*append_directory(t_query *query, char *path)
 /*
 ** search_directory: Recursively collect data on files contained in the current
 ** working path, each directory encountered adds an entry in the listing.
-** TODO: Free pointer 'path'.
+** The first step in the function is ensuring the given path ends with a slash.
+** TODO: Free pointer allocated by 'path'.
 */
 
-static void		search_directory(t_query *query, char *path)
+static int		search_directory(t_query *query, char *path)
 {
 	char			*join;
 	t_dir			*dir;
@@ -112,7 +121,7 @@ static void		search_directory(t_query *query, char *path)
 
 	path = ft_strjoin(path, is_a_directory(path) ? "" : "/");
 	if ((dir = append_directory(query, path)) == NULL)
-		return ;
+		return (1);
 	while ((ent = readdir(dir->temp)))
 	{
 		if ((!ft_strcmp(ent->d_name, ".") || !ft_strcmp(ent->d_name, ".."))
@@ -130,6 +139,7 @@ static void		search_directory(t_query *query, char *path)
 		ft_strdel(&join);
 	}
 	closedir(dir->temp);
+	return (0);
 }
 
 /*
@@ -139,14 +149,14 @@ static void		search_directory(t_query *query, char *path)
 ** call search_directory. If it is not, attach it to the dummy directory.
 */
 
-void			process_query(t_query *query)
+int				process_query(t_query *query)
 {
 	struct stat	stats;
 	char		*path;
 	t_dir		*dir;
 
 	if ((dir = append_directory(query, ".")) == NULL)
-		return ;
+		return (1) ;
 	while (query->numpaths--)
 	{
 		path = *query->paths++;
@@ -156,11 +166,14 @@ void			process_query(t_query *query)
 		{
 			if (!(stats.st_mode & S_IFDIR))
 			{
-				append_file(dir, path, &stats);
+				if (append_file(dir, path, &stats) == NULL)
+					return (1);
 				continue ;
 			}
-			search_directory(query, path);
+			if (search_directory(query, path))
+				return (1);
 		}
 	}
 	set_query_paddings(query);
+	return (0);
 }

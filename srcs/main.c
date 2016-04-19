@@ -59,7 +59,8 @@ int			main(int argc, char **argv)
 		argv[0] = ".";
 	query.paths = argv;
 	query.numpaths = argc ? argc : 1;
-	process_query(&query);
+	if (process_query(&query))
+		return (1);
 	printout_listing(&query);
 	return (0);
 }
