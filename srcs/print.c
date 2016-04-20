@@ -6,7 +6,7 @@
 /*   By: vchesnea <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2016/04/01 18:52:25 by vchesnea          #+#    #+#             */
-/*   Updated: 2016/04/20 15:19:41 by vchesnea         ###   ########.fr       */
+/*   Updated: 2016/04/20 17:16:05 by vchesnea         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -105,9 +105,7 @@ void		printout_listing(t_query *query)
 	int		multiple;
 
 	dir = query->listing;
-	if (dir->next)
-		dir = dir->next;
-	multiple = dir->next != NULL;
+	multiple = dir->next->next;
 	while (dir)
 	{
 		if (multiple)
