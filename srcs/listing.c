@@ -19,8 +19,8 @@
 
 static void		set_query_paddings(t_query *query)
 {
-	t_file	*file;
 	t_dir	*dir;
+	t_file	*file;
 
 	dir = query->listing;
 	while (dir)
@@ -53,7 +53,6 @@ static t_file	*append_file(t_dir *dir, const char *name, struct stat *stat)
 	t_file	*new;
 	t_file	*cur;
 
-	ft_printf("{{red}}Appending file{{eoc}} '%s'\n", name);
 	if ((new = malloc(sizeof(t_file))) == NULL)
 		return (NULL);
 	new->next = NULL;
@@ -82,7 +81,6 @@ static t_dir	*append_directory(t_query *query, char *path)
 	t_dir	*new;
 	t_dir	*cur;
 
-	ft_printf("{{red}}Appending directory{{eoc}} '%s'\n", path);
 	if ((new = malloc(sizeof(t_dir))) == NULL)
 		return (NULL);
 	if ((new->temp = opendir(path)) == NULL)
@@ -114,17 +112,17 @@ static t_dir	*append_directory(t_query *query, char *path)
 
 static int		search_directory(t_query *query, char *path)
 {
-	char			*join;
 	t_dir			*dir;
 	struct stat		stat;
 	struct dirent	*ent;
+	char			*join;
 
 	path = ft_strjoin(path, is_a_directory(path) ? "" : "/");
 	if ((dir = append_directory(query, path)) == NULL)
 		return (1);
 	while ((ent = readdir(dir->temp)))
 	{
-		if ((!ft_strcmp(ent->d_name, ".") || !ft_strcmp(ent->d_name, ".."))
+		if ((!ft_strncmp(ent->d_name, ".", 1) || !ft_strcmp(ent->d_name, ".."))
 			&& !(query->flags & F_ALL))
 			continue ;
 		join = ft_strjoin(path, ent->d_name);
@@ -151,9 +149,9 @@ static int		search_directory(t_query *query, char *path)
 
 int				process_query(t_query *query)
 {
-	struct stat	stats;
-	char		*path;
 	t_dir		*dir;
+	char		*path;
+	struct stat	stats;
 
 	if ((dir = append_directory(query, ".")) == NULL)
 		return (1) ;
