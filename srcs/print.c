@@ -18,7 +18,7 @@
 
 static void	print_left_part(t_file *file, t_query *query)
 {
-	int	n;
+	size_t	n;
 
 	ft_putchar(file->stats.st_mode & S_IFDIR ? 'd' : '-');
 	ft_putchar(file->stats.st_mode & S_IRUSR ? 'r' : '-');
@@ -43,7 +43,7 @@ static void	print_left_part(t_file *file, t_query *query)
 
 static void	print_center_part(t_file *file, t_query *query)
 {
-	int	n;
+	size_t	n;
 
 	ft_printf("%s  ", file->pwuid->pw_name);
 	n = query->user_pad - ft_strlen(file->pwuid->pw_name);
@@ -61,14 +61,24 @@ static void	print_center_part(t_file *file, t_query *query)
 
 /*
 ** print_right_part: Print the access time and the filename.
+** If the F_LIST flag is not present, this will be the only part
+** to be printed among the three.
 */
 
 static void	print_right_part(t_file *file, t_query *query)
 {
-	int	n;
+	size_t	n;
+	time_t	date;
 
 	if (query->flags & F_LIST)
-		ft_printf("%.12s ", ctime(&file->stats.st_mtimespec.tv_sec) + 4);
+	{
+		date = file->stats.st_mtimespec.tv_sec;
+		ft_printf("%.6s ", ctime(&date) + 4);
+		if ((time(NULL) - date > 15552000) || (time(NULL) - date < -3600))
+			ft_printf(" %.4s ", ctime(&date) + 20);
+		else
+			ft_printf("%.5s ", ctime(&date) + 11);
+	}
 	if (query->flags & F_COLOR)
 	{
 		if (file->stats.st_mode & S_IFDIR)
@@ -91,9 +101,9 @@ static void	print_right_part(t_file *file, t_query *query)
 
 void	printout_listing(t_query *query)
 {
-	int		multiple;
-	t_file	*file;
 	t_dir	*dir;
+	t_file	*file;
+	int		multiple;
 
 	dir = query->listing;
 	if (dir->next)
@@ -103,7 +113,7 @@ void	printout_listing(t_query *query)
 	{
 		if (multiple)
 			ft_printf("%s:\n", strip_slashes(dir->name));
-		if (multiple && (query->flags & F_LIST))
+		if (query->flags & F_LIST)
 			ft_printf("total %lu\n", get_directory_blocksize(dir));
 		file = dir->files;
 		while (file)
