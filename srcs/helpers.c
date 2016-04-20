@@ -12,16 +12,15 @@
 
 #include "ft_ls.h"
 
-
-void		sort_directories(t_dir *dir)
-{
-	
-}
-
-void		sort_files(t_file *file)
-{
-
-}
+// void		sort_directories(t_dir *dir)
+// {
+//
+// }
+//
+// void		sort_files(t_file *file)
+// {
+//
+// }
 
 /*
 ** set_query_paddings: Take note of the longest strings ft_ls is going to have
@@ -63,8 +62,13 @@ char		*strip_slashes(char *path)
 {
 	char	*tmp;
 
-	while ((tmp = ft_strrchr(path, '/')))
+	tmp = path + ft_strlen(path);
+	while (--tmp >= path)
+	{
+		if (*tmp != '/')
+			break ;
 		*tmp = '\0';
+	}
 	return (path);
 }
 
