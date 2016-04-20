@@ -6,7 +6,7 @@
 /*   By: vchesnea <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2016/04/01 18:52:25 by vchesnea          #+#    #+#             */
-/*   Updated: 2016/04/10 16:32:12 by vchesnea         ###   ########.fr       */
+/*   Updated: 2016/04/20 15:19:41 by vchesnea         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -67,7 +67,6 @@ static void	print_center_part(t_file *file, t_query *query)
 
 static void	print_right_part(t_file *file, t_query *query)
 {
-	size_t	n;
 	time_t	date;
 
 	if (query->flags & F_LIST)
@@ -99,7 +98,7 @@ static void	print_right_part(t_file *file, t_query *query)
 ** contain all of them).
 */
 
-void	printout_listing(t_query *query)
+void		printout_listing(t_query *query)
 {
 	t_dir	*dir;
 	t_file	*file;
