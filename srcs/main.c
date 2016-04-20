@@ -12,6 +12,10 @@
 
 #include "ft_ls.h"
 
+/*
+** TODO: Do not try to parse stray hyphens '-'.
+*/
+
 static int	parse_flags(int *argc, char ***argv, t_query *query)
 {
 	char	*args;
