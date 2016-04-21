@@ -45,6 +45,7 @@ typedef struct		s_dir
 typedef struct		s_file
 {
 	const char		*name;
+	const char		*path;
 	struct s_file	*next;
 	struct stat		stats;
 	struct passwd	*pwuid;

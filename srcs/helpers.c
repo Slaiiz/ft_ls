@@ -33,10 +33,10 @@ void		set_query_paddings(t_query *query)
 	t_file	*file;
 
 	dir = query->listing;
-	while (dir)
+	while (dir != NULL)
 	{
 		file = dir->files;
-		while (file)
+		while (file != NULL)
 		{
 			if (ft_nbrlen(file->stats.st_nlink, 10) > query->link_pad)
 				query->link_pad = ft_nbrlen(file->stats.st_nlink, 10);
@@ -84,7 +84,7 @@ int			get_directory_blocksize(t_dir *dir)
 
 	total = 0;
 	curr = dir->files;
-	while (curr)
+	while (curr != NULL)
 	{
 		total += curr->stats.st_blocks;
 		curr = curr->next;
@@ -104,7 +104,7 @@ int			is_listing_ordered(t_dir *listing)
 
 	prev = listing;
 	curr = prev->next;
-	while (curr)
+	while (curr != NULL)
 	{
 		if (ft_strcmp(prev->name, curr->name) > 0)
 			return (0);

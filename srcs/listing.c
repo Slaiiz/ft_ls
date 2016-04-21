@@ -24,10 +24,12 @@ static t_file	*append_file(t_dir *dir, const char *name, struct stat *stat)
 	if ((new = malloc(sizeof(t_file))) == NULL)
 		return (NULL);
 	new->next = NULL;
-	new->name = name;
 	new->stats = *stat;
-	new->pwuid = getpwuid(stat->st_uid);
-	new->grgid = getgrgid(stat->st_gid);
+	new->name = ft_strdup(name);
+	new->pwuid = malloc(sizeof(struct passwd));
+	ft_memcpy(new->pwuid, getpwuid(stat->st_uid), sizeof(struct passwd));
+	new->grgid = malloc(sizeof(struct passwd));
+	ft_memcpy(new->grgid, getgrgid(stat->st_gid), sizeof(struct group));
 	cur = dir->files;
 	if (cur == NULL)
 	{
@@ -83,6 +85,7 @@ static int		search_directory(t_query *query, char *path)
 	struct stat		stat;
 	struct dirent	*ent;
 	char			*join;
+	t_file			*file;
 
 	path = ft_strjoin(path, path[ft_strlen(path) - 1] == '/' ? "" : "/");
 	if ((dir = append_directory(query, path)) == NULL)
@@ -96,8 +99,8 @@ static int		search_directory(t_query *query, char *path)
 		lstat(join, &stat);
 		if (stat.st_mode & S_IFDIR && (query->flags & F_RECURSIVE))
 			search_directory(query, join);
-		append_file(dir, ft_strdup(ent->d_name), &stat);
-		ft_strdel(&join);
+		file = append_file(dir, ent->d_name, &stat);
+		file->path = join;
 	}
 	closedir(dir->temp);
 	return (0);
@@ -121,17 +124,16 @@ int				process_query(t_query *query)
 	while (query->numpaths--)
 	{
 		path = *query->paths++;
-		if (stat(path, &stats))
+		if (lstat(path, &stats))
 			ft_printf("%s: %s: %s\n", query->exec, path, strerror(errno));
 		else
 		{
-			if (!(stats.st_mode & S_IFDIR))
+			if (!stats.st_mode & S_IFDIR)
 			{
-				if (append_file(dir, ft_strdup(path), &stats) == NULL)
+				if (append_file(dir, path, &stats) == NULL)
 					return (1);
-				continue ;
 			}
-			if (search_directory(query, path))
+			else if (search_directory(query, path))
 				return (1);
 		}
 	}

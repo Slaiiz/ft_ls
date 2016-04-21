@@ -69,13 +69,13 @@ static void	free_resources(t_query *query)
 		while (currfile != NULL)
 		{
 			nextfile = currfile->next;
-//			ft_printf("{{blue}}Freeing file {{eoc}}'%s'\n", currfile->name);
 			free((void*)currfile->name);
+			free((void*)currfile->pwuid);
+			free((void*)currfile->grgid);
 			free((void*)currfile);
 			currfile = nextfile;
 		}
 		nextdir = currdir->next;
-//		ft_printf("{{blue}}Freeing directory {{eoc}}'%s'\n", currdir->name);
 		free((void*)currdir->name);
 		free((void*)currdir);
 		currdir = nextdir;

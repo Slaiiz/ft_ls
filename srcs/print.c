@@ -20,7 +20,12 @@ static void	print_left_part(t_file *file, t_query *query)
 {
 	size_t	n;
 
-	ft_putchar(file->stats.st_mode & S_IFDIR ? 'd' : '-');
+	if ((file->stats.st_mode & S_IFDIR) == S_IFDIR)
+		ft_putchar('d');
+	else if ((file->stats.st_mode & S_IFLNK) == S_IFLNK)
+		ft_putchar('l');
+	else
+		ft_putchar('-');
 	ft_putchar(file->stats.st_mode & S_IRUSR ? 'r' : '-');
 	ft_putchar(file->stats.st_mode & S_IWUSR ? 'w' : '-');
 	ft_putchar(file->stats.st_mode & S_IXUSR ? 'x' : '-');
@@ -38,12 +43,14 @@ static void	print_left_part(t_file *file, t_query *query)
 }
 
 /*
-** print_center_part: Print the owner's name & group and the file size.
+** print_center_part: Print the owner's name, group, the file size
+** and also the time of last modification.
 */
 
 static void	print_center_part(t_file *file, t_query *query)
 {
 	size_t	n;
+	time_t	date;
 
 	ft_printf("%s  ", file->pwuid->pw_name);
 	n = query->user_pad - ft_strlen(file->pwuid->pw_name);
@@ -57,39 +64,68 @@ static void	print_center_part(t_file *file, t_query *query)
 	while (n--)
 		ft_putchar(' ');
 	ft_printf("%lu ", file->stats.st_size);
+	date = file->stats.st_mtimespec.tv_sec;
+	ft_printf("%.6s ", ctime(&date) + 4);
+	if ((time(NULL) - date > 15552000) || (time(NULL) - date < -3600))
+		ft_printf(" %.4s ", ctime(&date) + 20);
+	else
+		ft_printf("%.5s ", ctime(&date) + 11);
 }
 
 /*
-** print_right_part: Print the access time and the filename.
+** print_right_part: Print the filename and eventual link references.
 ** If the F_LIST flag is not present, this will be the only part
 ** to be printed among the three.
 */
 
 static void	print_right_part(t_file *file, t_query *query)
 {
-	time_t	date;
+	char	link[32];
 
-	if (query->flags & F_LIST)
-	{
-		date = file->stats.st_mtimespec.tv_sec;
-		ft_printf("%.6s ", ctime(&date) + 4);
-		if ((time(NULL) - date > 15552000) || (time(NULL) - date < -3600))
-			ft_printf(" %.4s ", ctime(&date) + 20);
-		else
-			ft_printf("%.5s ", ctime(&date) + 11);
-	}
 	if (query->flags & F_COLOR)
 	{
-		if (file->stats.st_mode & S_IFDIR)
+		if ((file->stats.st_mode & S_IFLNK) == S_IFLNK)
+			ft_printf("{{magenta}}");
+		else if ((file->stats.st_mode & S_IFDIR) == S_IFDIR)
 			ft_printf("{{blue}}");
-		else if (file->stats.st_mode & S_IXUSR)
+		else if ((file->stats.st_mode & S_IXUSR) == S_IXUSR)
 			ft_printf("{{red}}");
 	}
 	ft_printf("%s", file->name);
 	if (query->flags & F_COLOR)
 		ft_printf("{{eoc}}");
 	if (query->flags & F_LIST)
+	{
+		if ((file->stats.st_mode & S_IFLNK) == S_IFLNK)
+		{
+			readlink(file->path, link, 32);
+			ft_printf(" -> %.32s", link);
+		}
 		ft_putchar('\n');
+	}
+}
+
+/*
+** printout_files:
+*/
+
+static void	printout_directory(t_dir *dir, t_query *query)
+{
+	t_file	*file;
+
+	if (query->flags & F_LIST && dir != query->listing)
+		ft_printf("total %lu\n", get_directory_blocksize(dir));
+	file = dir->files;
+	while (file != NULL)
+	{
+		if (query->flags & F_LIST)
+		{
+			print_left_part(file, query);
+			print_center_part(file, query);
+		}
+		print_right_part(file, query);
+		file = file->next;
+	}
 }
 
 /*
@@ -101,30 +137,18 @@ static void	print_right_part(t_file *file, t_query *query)
 void		printout_listing(t_query *query)
 {
 	t_dir	*dir;
-	t_file	*file;
 	int		multiple;
 
-	dir = query->listing;
-	multiple = dir->next->next;
-	while (dir)
+	printout_directory(query->listing, query);
+	dir = query->listing->next;
+	multiple = dir->next != NULL;
+	while (dir != NULL)
 	{
 		if (multiple)
 			ft_printf("%s:\n", strip_slashes(dir->name));
-		if (query->flags & F_LIST)
-			ft_printf("total %lu\n", get_directory_blocksize(dir));
-		file = dir->files;
-		while (file)
-		{
-			if (query->flags & F_LIST)
-			{
-				print_left_part(file, query);
-				print_center_part(file, query);
-			}
-			print_right_part(file, query);
-			file = file->next;
-		}
+		printout_directory(dir, query);
 		dir = dir->next;
-		if (multiple && dir)
-			ft_printf("\n");
+		if (dir != NULL)
+			ft_putchar('\n');
 	}
 }
