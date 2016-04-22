@@ -16,7 +16,7 @@
 ** append_file: Add a file entry in the current directory entry.
 */
 
-static t_file	*append_file(t_dir *dir, const char *name, struct stat *stat)
+static t_file	*append_file(char *name, t_dir *dir)
 {
 	t_file	*new;
 	t_file	*cur;
@@ -24,12 +24,7 @@ static t_file	*append_file(t_dir *dir, const char *name, struct stat *stat)
 	if ((new = malloc(sizeof(t_file))) == NULL)
 		return (NULL);
 	new->next = NULL;
-	new->stats = *stat;
 	new->name = ft_strdup(name);
-	new->pwuid = malloc(sizeof(struct passwd));
-	ft_memcpy(new->pwuid, getpwuid(stat->st_uid), sizeof(struct passwd));
-	new->grgid = malloc(sizeof(struct passwd));
-	ft_memcpy(new->grgid, getgrgid(stat->st_gid), sizeof(struct group));
 	cur = dir->files;
 	if (cur == NULL)
 	{
@@ -53,6 +48,7 @@ static t_dir	*append_directory(t_query *query, char *path)
 
 	if ((new = malloc(sizeof(t_dir))) == NULL)
 		return (NULL);
+	ft_bzero(&new->name_pad, 5 * sizeof(size_t));
 	if ((new->temp = opendir(path)) == NULL)
 	{
 		ft_printf("%s: %s: %s\n", query->exec, path, strerror(errno));
@@ -82,10 +78,10 @@ static t_dir	*append_directory(t_query *query, char *path)
 static int		search_directory(t_query *query, char *path)
 {
 	t_dir			*dir;
-	struct stat		stat;
 	struct dirent	*ent;
 	char			*join;
 	t_file			*file;
+	struct stat		stats;
 
 	path = ft_strjoin(path, path[ft_strlen(path) - 1] == '/' ? "" : "/");
 	if ((dir = append_directory(query, path)) == NULL)
@@ -96,11 +92,11 @@ static int		search_directory(t_query *query, char *path)
 			&& !(query->flags & F_ALL))
 			continue;
 		join = ft_strjoin(path, ent->d_name);
-		lstat(join, &stat);
-		if (stat.st_mode & S_IFDIR && (query->flags & F_RECURSIVE))
+		lstat(join, &stats);
+		if (S_ISDIR(stats.st_mode) && (query->flags & F_RECURSIVE))
 			search_directory(query, join);
-		file = append_file(dir, ent->d_name, &stat);
-		file->path = join;
+		file = append_file(ent->d_name, dir);
+		attach_data(file, &stats, join);
 	}
 	closedir(dir->temp);
 	return (0);
@@ -116,6 +112,7 @@ static int		search_directory(t_query *query, char *path)
 int				process_query(t_query *query)
 {
 	t_dir		*dir;
+	t_file		*file;
 	char		*path;
 	struct stat	stats;
 
@@ -126,17 +123,17 @@ int				process_query(t_query *query)
 		path = *query->paths++;
 		if (lstat(path, &stats))
 			ft_printf("%s: %s: %s\n", query->exec, path, strerror(errno));
-		else
+		else if (S_ISDIR(stats.st_mode))
 		{
-			if (!stats.st_mode & S_IFDIR)
-			{
-				if (append_file(dir, path, &stats) == NULL)
-					return (1);
-			}
-			else if (search_directory(query, path))
+			if (search_directory(query, path))
 				return (1);
 		}
+		else
+		{
+			if ((file = append_file(path, dir)) == NULL)
+				return (1);
+			attach_data(file, &stats, ft_strdup(path));
+		}
 	}
-	set_query_paddings(query);
-	return (0);
+	return (set_query_paddings(query));
 }
