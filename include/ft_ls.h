@@ -17,7 +17,6 @@
 # include <pwd.h>
 # include <time.h>
 # include <errno.h>
-# include <stdio.h>
 # include <string.h>
 # include <dirent.h>
 # include <sys/stat.h>
@@ -40,12 +39,17 @@ typedef struct		s_dir
 	char			*name;
 	struct s_dir	*next;
 	struct s_file	*files;
+	size_t			name_pad;
+	size_t			link_pad;
+	size_t			user_pad;
+	size_t			grup_pad;
+	size_t			size_pad;
 }					t_dir;
 
 typedef struct		s_file
 {
-	const char		*name;
-	const char		*path;
+	char			*name;
+	char			*path;
 	struct s_file	*next;
 	struct stat		stats;
 	struct passwd	*pwuid;
@@ -59,20 +63,18 @@ typedef struct		s_query
 	char			**paths;
 	int				numpaths;
 	struct s_dir	*listing;
-	size_t			name_pad;
-	size_t			link_pad;
-	size_t			user_pad;
-	size_t			grup_pad;
-	size_t			size_pad;
 }					t_query;
 
 int					process_query(t_query *query);
 void				printout_listing(t_query *query);
 
+/*
+** Helper functions
+*/
+
 char				*strip_slashes(char *path);
-int					is_a_directory(const char *path);
-int					is_listing_ordered(t_dir *listing);
-void				set_query_paddings(t_query *query);
+int					set_query_paddings(t_query *query);
 int					get_directory_blocksize(t_dir *dir);
+void				attach_data(t_file *file, struct stat *stats, char *path);
 
 #endif
