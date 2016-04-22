@@ -16,13 +16,13 @@
 ** print_left_part: Print the file attributes and its links.
 */
 
-static void	print_left_part(t_file *file, t_query *query)
+static void	print_left_part(t_dir *dir, t_file *file)
 {
 	size_t	n;
 
-	if ((file->stats.st_mode & S_IFDIR) == S_IFDIR)
+	if (S_ISDIR(file->stats.st_mode))
 		ft_putchar('d');
-	else if ((file->stats.st_mode & S_IFLNK) == S_IFLNK)
+	else if (S_ISLNK(file->stats.st_mode))
 		ft_putchar('l');
 	else
 		ft_putchar('-');
@@ -36,7 +36,7 @@ static void	print_left_part(t_file *file, t_query *query)
 	ft_putchar(file->stats.st_mode & S_IWOTH ? 'w' : '-');
 	ft_putchar(file->stats.st_mode & S_IXOTH ? 'x' : '-');
 	ft_putstr("  ");
-	n = query->link_pad - ft_nbrlen(file->stats.st_nlink, 10);
+	n = dir->link_pad - ft_nbrlen(file->stats.st_nlink, 10);
 	while (n--)
 		ft_putchar(' ');
 	ft_printf("%d ", file->stats.st_nlink);
@@ -47,20 +47,26 @@ static void	print_left_part(t_file *file, t_query *query)
 ** and also the time of last modification.
 */
 
-static void	print_center_part(t_file *file, t_query *query)
+static void	print_center_part(t_dir *dir, t_file *file)
 {
 	size_t	n;
 	time_t	date;
 
+	// if (ft_strlen(file->pwuid->pw_name) > 25)
+	// {
+	// 	ft_printf("{{red;bu}}Found!{{eoc;}} : %s\n", file->pwuid->pw_name);
+	// 	while (1);
+	// }
+
 	ft_printf("%s  ", file->pwuid->pw_name);
-	n = query->user_pad - ft_strlen(file->pwuid->pw_name);
+	n = dir->user_pad - ft_strlen(file->pwuid->pw_name);
 	while (n--)
 		ft_putchar(' ');
 	ft_printf("%s  ", file->grgid->gr_name);
-	n = query->grup_pad - ft_strlen(file->grgid->gr_name);
+	n = dir->grup_pad - ft_strlen(file->grgid->gr_name);
 	while (n--)
 		ft_putchar(' ');
-	n = query->size_pad - ft_nbrlen(file->stats.st_size, 10);
+	n = dir->size_pad - ft_nbrlen(file->stats.st_size, 10);
 	while (n--)
 		ft_putchar(' ');
 	ft_printf("%lu ", file->stats.st_size);
@@ -78,17 +84,17 @@ static void	print_center_part(t_file *file, t_query *query)
 ** to be printed among the three.
 */
 
-static void	print_right_part(t_file *file, t_query *query)
+static void	print_right_part(t_query *query, t_file *file)
 {
-	char	link[32];
+	char	link[256];
 
 	if (query->flags & F_COLOR)
 	{
-		if ((file->stats.st_mode & S_IFLNK) == S_IFLNK)
+		if (S_ISLNK(file->stats.st_mode))
 			ft_printf("{{magenta}}");
-		else if ((file->stats.st_mode & S_IFDIR) == S_IFDIR)
+		else if (S_ISDIR(file->stats.st_mode))
 			ft_printf("{{blue}}");
-		else if ((file->stats.st_mode & S_IXUSR) == S_IXUSR)
+		else if ((file->stats.st_mode & S_IXUSR))
 			ft_printf("{{red}}");
 	}
 	ft_printf("%s", file->name);
@@ -96,34 +102,30 @@ static void	print_right_part(t_file *file, t_query *query)
 		ft_printf("{{eoc}}");
 	if (query->flags & F_LIST)
 	{
-		if ((file->stats.st_mode & S_IFLNK) == S_IFLNK)
+		if (S_ISLNK(file->stats.st_mode))
 		{
-			readlink(file->path, link, 32);
-			ft_printf(" -> %.32s", link);
+			link[readlink(file->path, link, 255)] = '\0';
+			ft_printf(" -> %.255s", link);
 		}
 		ft_putchar('\n');
 	}
 }
 
-/*
-** printout_files:
-*/
-
-static void	printout_directory(t_dir *dir, t_query *query)
+static void	printout_directory(t_query *query, t_dir *dir)
 {
 	t_file	*file;
 
-	if (query->flags & F_LIST && dir != query->listing)
+	if (query->flags & F_LIST && dir != query->listing && dir->files != NULL)
 		ft_printf("total %lu\n", get_directory_blocksize(dir));
 	file = dir->files;
 	while (file != NULL)
 	{
 		if (query->flags & F_LIST)
 		{
-			print_left_part(file, query);
-			print_center_part(file, query);
+			print_left_part(dir, file);
+			print_center_part(dir, file);
 		}
-		print_right_part(file, query);
+		print_right_part(query, file);
 		file = file->next;
 	}
 }
@@ -139,14 +141,14 @@ void		printout_listing(t_query *query)
 	t_dir	*dir;
 	int		multiple;
 
-	printout_directory(query->listing, query);
+	printout_directory(query, query->listing);
 	dir = query->listing->next;
-	multiple = dir->next != NULL;
+	multiple = dir != NULL && dir->next != NULL;
 	while (dir != NULL)
 	{
 		if (multiple)
 			ft_printf("%s:\n", strip_slashes(dir->name));
-		printout_directory(dir, query);
+		printout_directory(query, dir);
 		dir = dir->next;
 		if (dir != NULL)
 			ft_putchar('\n');
