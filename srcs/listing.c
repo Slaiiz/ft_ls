@@ -22,7 +22,7 @@ static t_file	*append_file(char *name, t_dir *dir)
 	t_file	*cur;
 
 	if ((new = malloc(sizeof(t_file))) == NULL)
-		return (NULL);
+		exit(errno);
 	new->next = NULL;
 	new->name = ft_strdup(name);
 	cur = dir->files;
@@ -47,11 +47,11 @@ static t_dir	*append_directory(t_query *query, char *path)
 	t_dir	*cur;
 
 	if ((new = malloc(sizeof(t_dir))) == NULL)
-		return (NULL);
+		exit(errno);
 	ft_bzero(&new->name_pad, 5 * sizeof(size_t));
 	if ((new->temp = opendir(path)) == NULL)
 	{
-		ft_printf("%s: %s: %s\n", query->exec, path, strerror(errno));
+		print_error(query->exec, path, strerror(errno));
 		return (NULL);
 	}
 	new->files = NULL;
@@ -91,8 +91,8 @@ static int		search_directory(t_query *query, char *path)
 		if ((!ft_strncmp(ent->d_name, ".", 1) || !ft_strcmp(ent->d_name, ".."))
 			&& !(query->flags & F_ALL))
 			continue;
-		join = ft_strjoin(path, ent->d_name);
-		lstat(join, &stats);
+		if (lstat((join = ft_strjoin(path, ent->d_name)), &stats))
+			exit(print_error(query->exec, path, strerror(errno)));
 		if (S_ISDIR(stats.st_mode) && (query->flags & F_RECURSIVE))
 			search_directory(query, join);
 		file = append_file(ent->d_name, dir);
@@ -122,16 +122,12 @@ int				process_query(t_query *query)
 	{
 		path = *query->paths++;
 		if (lstat(path, &stats))
-			ft_printf("%s: %s: %s\n", query->exec, path, strerror(errno));
-		else if (S_ISDIR(stats.st_mode))
-		{
-			if (search_directory(query, path))
-				return (1);
-		}
+			exit(print_error(query->exec, path, strerror(errno)));
+		if (S_ISDIR(stats.st_mode))
+			search_directory(query, path);
 		else
 		{
-			if ((file = append_file(path, dir)) == NULL)
-				return (1);
+			file = append_file(path, dir);
 			attach_data(file, &stats, ft_strdup(path));
 		}
 	}

@@ -67,7 +67,7 @@ typedef struct		s_query
 
 int					process_query(t_query *query);
 void				printout_listing(t_query *query);
-
+errno_t				print_error(const char *exec, char *path, char *error);
 /*
 ** Helper functions
 */

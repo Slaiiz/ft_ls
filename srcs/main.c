@@ -41,7 +41,7 @@ static int	parse_flags(t_query *query, int *argc, char ***argv)
 				query->flags |= F_COLOR;
 			else
 			{
-				ft_printf("#!fd=2^%s: %s%c\n", query->exec,
+				ft_printf("%s: %s%c\n", query->exec,
 					"illegal option -- ", *args);
 				return (1);
 			}
@@ -83,6 +83,12 @@ static void	free_resources(t_query *query)
 	}
 }
 
+errno_t		print_error(const char *exec, char *path, char *error)
+{
+	ft_printf("#!fd=2^%s: %s: %s\n", exec, path, error);
+	return (errno);
+}
+
 /*
 ** main: The flow goes as follows:
 ** - Allocate some room for the query.
@@ -100,7 +106,7 @@ int			main(int argc, char **argv)
 	query.exec = ft_strrchr(argv[0], '/') + 1;
 	if (parse_flags(&query, &argc, &argv))
 	{
-		ft_printf("#!fd=2^usage: %s [-aGlRrt] [file ...]\n", query.exec);
+		ft_printf("usage: %s [-aGlRrt] [file ...]\n", query.exec);
 		return (1);
 	}
 	if (!argc)

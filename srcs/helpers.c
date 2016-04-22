@@ -12,6 +12,10 @@
 
 #include "ft_ls.h"
 
+/*
+** attach_data: Follows a call to append_file.
+*/
+
 void		attach_data(t_file *file, struct stat *stats, char *path)
 {
 	file->path = path;
