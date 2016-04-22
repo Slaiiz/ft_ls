@@ -18,7 +18,7 @@
 ** TODO: Do not try to parse stray hyphens '-'.
 */
 
-static int	parse_flags(int *argc, char ***argv, t_query *query)
+static int	parse_flags(t_query *query, int *argc, char ***argv)
 {
 	char	*args;
 
@@ -70,6 +70,7 @@ static void	free_resources(t_query *query)
 		{
 			nextfile = currfile->next;
 			free((void*)currfile->name);
+			free((void*)currfile->path);
 			free((void*)currfile->pwuid);
 			free((void*)currfile->grgid);
 			free((void*)currfile);
@@ -97,7 +98,7 @@ int			main(int argc, char **argv)
 
 	ft_bzero(&query, sizeof(t_query));
 	query.exec = ft_strrchr(argv[0], '/') + 1;
-	if (parse_flags(&argc, &argv, &query))
+	if (parse_flags(&query, &argc, &argv))
 	{
 		ft_printf("#!fd=2^usage: %s [-aGlRrt] [file ...]\n", query.exec);
 		return (1);
