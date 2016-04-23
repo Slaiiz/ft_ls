@@ -20,12 +20,13 @@ static void	print_left_part(t_dir *dir, t_file *file)
 {
 	size_t	n;
 
-	if (S_ISDIR(file->stats.st_mode))
-		ft_putchar('d');
-	else if (S_ISLNK(file->stats.st_mode))
-		ft_putchar('l');
-	else
-		ft_putchar('-');
+	S_ISDIR(file->stats.st_mode) ? ft_putchar('d') : 0;
+	S_ISLNK(file->stats.st_mode) ? ft_putchar('l') : 0;
+	S_ISBLK(file->stats.st_mode) ? ft_putchar('b') : 0;
+	S_ISCHR(file->stats.st_mode) ? ft_putchar('c') : 0;
+	S_ISREG(file->stats.st_mode) ? ft_putchar('-') : 0;
+	S_ISFIFO(file->stats.st_mode) ? ft_putchar('f') : 0;
+	S_ISSOCK(file->stats.st_mode) ? ft_putchar('s') : 0;
 	ft_putchar(file->stats.st_mode & S_IRUSR ? 'r' : '-');
 	ft_putchar(file->stats.st_mode & S_IWUSR ? 'w' : '-');
 	ft_putchar(file->stats.st_mode & S_IXUSR ? 'x' : '-');
@@ -35,8 +36,7 @@ static void	print_left_part(t_dir *dir, t_file *file)
 	ft_putchar(file->stats.st_mode & S_IROTH ? 'r' : '-');
 	ft_putchar(file->stats.st_mode & S_IWOTH ? 'w' : '-');
 	ft_putchar(file->stats.st_mode & S_IXOTH ? 'x' : '-');
-	ft_putstr("  ");
-	n = dir->link_pad - ft_nbrlen(file->stats.st_nlink, 10);
+	n = dir->link_pad - ft_nbrlen(file->stats.st_nlink, 10) + 2;
 	while (n--)
 		ft_putchar(' ');
 	ft_printf("%d ", file->stats.st_nlink);
@@ -52,18 +52,12 @@ static void	print_center_part(t_dir *dir, t_file *file)
 	size_t	n;
 	time_t	date;
 
-	// if (ft_strlen(file->pwuid->pw_name) > 25)
-	// {
-	// 	ft_printf("{{red;bu}}Found!{{eoc;}} : %s\n", file->pwuid->pw_name);
-	// 	while (1);
-	// }
-
-	ft_printf("%s  ", file->pwuid->pw_name);
-	n = dir->user_pad - ft_strlen(file->pwuid->pw_name);
+	ft_printf("%s  ", file->passw);
+	n = dir->user_pad - ft_strlen(file->passw);
 	while (n--)
 		ft_putchar(' ');
-	ft_printf("%s  ", file->grgid->gr_name);
-	n = dir->grup_pad - ft_strlen(file->grgid->gr_name);
+	ft_printf("%s  ", file->group);
+	n = dir->grup_pad - ft_strlen(file->group);
 	while (n--)
 		ft_putchar(' ');
 	n = dir->size_pad - ft_nbrlen(file->stats.st_size, 10);
@@ -90,16 +84,15 @@ static void	print_right_part(t_query *query, t_file *file)
 
 	if (query->flags & F_COLOR)
 	{
-		if (S_ISLNK(file->stats.st_mode))
-			ft_printf("{{magenta}}");
-		else if (S_ISDIR(file->stats.st_mode))
-			ft_printf("{{blue}}");
-		else if ((file->stats.st_mode & S_IXUSR))
-			ft_printf("{{red}}");
+		file->stats.st_mode & S_IXUSR ? ft_printf("{{red}}") : 0;
+		S_ISDIR(file->stats.st_mode) ? ft_printf("{{blue}}") : 0;
+		S_ISLNK(file->stats.st_mode) ? ft_printf("{{magenta}}") : 0;
+		S_ISBLK(file->stats.st_mode) ? ft_printf("\x1b[46m{{blue}}") : 0;
+		S_ISCHR(file->stats.st_mode) ? ft_printf("\x1b[43m{{blue}}") : 0;
 	}
 	ft_printf("%s", file->name);
 	if (query->flags & F_COLOR)
-		ft_printf("{{eoc}}");
+		ft_printf("\x1b[49m{{eoc}}");
 	if (query->flags & F_LIST)
 	{
 		if (S_ISLNK(file->stats.st_mode))
@@ -141,12 +134,11 @@ void		printout_listing(t_query *query)
 	t_dir	*dir;
 	int		multiple;
 
-	printout_directory(query, query->listing);
-	dir = query->listing->next;
-	multiple = dir != NULL && dir->next != NULL;
+	dir = query->listing;
+	multiple = dir->next && dir->next->next;
 	while (dir != NULL)
 	{
-		if (multiple)
+		if (multiple && dir != query->listing)
 			ft_printf("%s:\n", strip_slashes(dir->name));
 		printout_directory(query, dir);
 		dir = dir->next;
