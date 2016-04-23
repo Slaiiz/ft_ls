@@ -50,10 +50,10 @@ typedef struct		s_file
 {
 	char			*name;
 	char			*path;
-	struct s_file	*next;
 	struct stat		stats;
-	struct passwd	*pwuid;
-	struct group	*grgid;
+	struct s_file	*next;
+	const char		*passw;
+	const char		*group;
 }					t_file;
 
 typedef struct		s_query

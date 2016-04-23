@@ -18,12 +18,15 @@
 
 void		attach_data(t_file *file, struct stat *stats, char *path)
 {
+	struct group	*group;
+	struct passwd	*passwd;
+
 	file->path = path;
 	file->stats = *stats;
-	file->pwuid = malloc(sizeof(struct passwd));
-	ft_memcpy(file->pwuid, getpwuid(stats->st_uid), sizeof(struct passwd));
-	file->grgid = malloc(sizeof(struct group));
-	ft_memcpy(file->grgid, getgrgid(stats->st_gid), sizeof(struct group));
+	passwd = getpwuid(stats->st_uid);
+	file->passw = ft_strdup(passwd->pw_name);
+	group = getgrgid(stats->st_gid);
+	file->group = ft_strdup(group->gr_name);
 }
 
 /*
@@ -82,10 +85,10 @@ int			set_query_paddings(t_query *query)
 		{
 			if (ft_nbrlen(file->stats.st_nlink, 10) > dir->link_pad)
 				dir->link_pad = ft_nbrlen(file->stats.st_nlink, 10);
-			if (ft_strlen(file->pwuid->pw_name) > dir->user_pad)
-				dir->user_pad = ft_strlen(file->pwuid->pw_name);
-			if (ft_strlen(file->grgid->gr_name) > dir->grup_pad)
-				dir->grup_pad = ft_strlen(file->grgid->gr_name);
+			if (ft_strlen(file->passw) > dir->user_pad)
+				dir->user_pad = ft_strlen(file->passw);
+			if (ft_strlen(file->group) > dir->grup_pad)
+				dir->grup_pad = ft_strlen(file->group);
 			if (ft_nbrlen(file->stats.st_size, 10) > dir->size_pad)
 				dir->size_pad = ft_nbrlen(file->stats.st_size, 10);
 			if (ft_strlen(file->name) > dir->name_pad)
