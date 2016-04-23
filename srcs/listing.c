@@ -6,7 +6,7 @@
 /*   By: vchesnea <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2016/04/01 18:52:11 by vchesnea          #+#    #+#             */
-/*   Updated: 2016/04/20 15:37:13 by vchesnea         ###   ########.fr       */
+/*   Updated: 2016/04/23 15:49:26 by vchesnea         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -39,6 +39,8 @@ static t_file	*append_file(char *name, t_dir *dir)
 
 /*
 ** append_directory: Add a directory entry in the listing.
+** Still in debug.
+** FIXME: './ft_ls -lG /sgoinfre/goinfre/Apps/M.A.O./Doc/' has issues
 */
 
 static t_dir	*append_directory(t_query *query, char *path)
@@ -46,6 +48,7 @@ static t_dir	*append_directory(t_query *query, char *path)
 	t_dir	*new;
 	t_dir	*cur;
 
+	ft_printf("{{red;b}}Appending folder: {{eoc;}}%s\n", path);
 	if ((new = malloc(sizeof(t_dir))) == NULL)
 		exit(errno);
 	ft_bzero(&new->name_pad, 5 * sizeof(size_t));
@@ -88,12 +91,12 @@ static int		search_directory(t_query *query, char *path)
 		return (1);
 	while ((ent = readdir(dir->temp)))
 	{
-		if ((!ft_strncmp(ent->d_name, ".", 1) || !ft_strcmp(ent->d_name, ".."))
-			&& !(query->flags & F_ALL))
+		if (!ft_strncmp(ent->d_name, ".", 1) && !(query->flags & F_ALL))
 			continue;
 		if (lstat((join = ft_strjoin(path, ent->d_name)), &stats))
 			exit(print_error(query->exec, path, strerror(errno)));
-		if (S_ISDIR(stats.st_mode) && (query->flags & F_RECURSIVE))
+		if (S_ISDIR(stats.st_mode) && (query->flags & F_RECURSIVE)
+			&& ft_strncmp(ent->d_name, ".", 1))
 			search_directory(query, join);
 		file = append_file(ent->d_name, dir);
 		attach_data(file, &stats, join);
@@ -117,7 +120,7 @@ int				process_query(t_query *query)
 	struct stat	stats;
 
 	if ((dir = append_directory(query, ft_strdup("."))) == NULL)
-		return (1) ;
+		return (1);
 	while (query->numpaths--)
 	{
 		path = *query->paths++;

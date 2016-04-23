@@ -26,7 +26,7 @@
 
 # include "libft.h"
 
-# define F_LIST			1
+# define F_LONG			1
 # define F_RECURSIVE	2
 # define F_ALL			4
 # define F_REVERSE		8
@@ -52,8 +52,8 @@ typedef struct		s_file
 	char			*path;
 	struct stat		stats;
 	struct s_file	*next;
-	const char		*passw;
-	const char		*group;
+	char			*passw;
+	char			*group;
 }					t_file;
 
 typedef struct		s_query
@@ -68,6 +68,7 @@ typedef struct		s_query
 int					process_query(t_query *query);
 void				printout_listing(t_query *query);
 errno_t				print_error(const char *exec, char *path, char *error);
+
 /*
 ** Helper functions
 */

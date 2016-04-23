@@ -13,33 +13,42 @@
 #include "ft_ls.h"
 
 /*
+** print_error: Print an error to stderr, formatted
+** in that same specific format used by the ls utility.
+*/
+
+errno_t		print_error(const char *exec, char *path, char *error)
+{
+	ft_printf("#!fd=2^%s: %s: %s\n", exec, path, error);
+	return (errno);
+}
+
+/*
 ** parse_flags: Read sequences of tokens beginning with a hyphen
 ** that will alter the flow of the program.
-** TODO: Do not try to parse stray hyphens '-'.
+** FIXME: Had to use a dirty trick to fit in the 25 lines limit.
+** You can easily spot that one.
 */
 
 static int	parse_flags(t_query *query, int *argc, char ***argv)
 {
 	char	*args;
+	int		count;
 
 	while (*argc && --*argc && **(++*argv) == '-')
 	{
 		args = **argv;
-		while (*++args != '\0')
+		if (ft_strlen(args) < 2)
+			break ;
+		while (*++args != '\0' && ((count = 1)))
 		{
-			if (*args == 'l')
-				query->flags |= F_LIST;
-			else if (*args == 'R')
-				query->flags |= F_RECURSIVE;
-			else if (*args == 'a')
-				query->flags |= F_ALL;
-			else if (*args == 'r')
-				query->flags |= F_REVERSE;
-			else if (*args == 't')
-				query->flags |= F_TIME;
-			else if (*args == 'G')
-				query->flags |= F_COLOR;
-			else
+			*args == 'l' ? query->flags |= F_LONG : ++count;
+			*args == 'R' ? query->flags |= F_RECURSIVE : ++count;
+			*args == 'a' ? query->flags |= F_ALL : ++count;
+			*args == 'r' ? query->flags |= F_REVERSE : ++count;
+			*args == 't' ? query->flags |= F_TIME : ++count;
+			*args == 'G' ? query->flags |= F_COLOR : ++count;
+			if (count == 7)
 			{
 				ft_printf("%s: %s%c\n", query->exec,
 					"illegal option -- ", *args);
@@ -69,24 +78,18 @@ static void	free_resources(t_query *query)
 		while (currfile != NULL)
 		{
 			nextfile = currfile->next;
-			free((void*)currfile->name);
-			free((void*)currfile->path);
-			free((void*)currfile->passw);
-			free((void*)currfile->group);
-			free((void*)currfile);
+			free(currfile->name);
+			free(currfile->path);
+			free(currfile->passw);
+			free(currfile->group);
+			free(currfile);
 			currfile = nextfile;
 		}
 		nextdir = currdir->next;
-		free((void*)currdir->name);
-		free((void*)currdir);
+		free(currdir->name);
+		free(currdir);
 		currdir = nextdir;
 	}
-}
-
-errno_t		print_error(const char *exec, char *path, char *error)
-{
-	ft_printf("#!fd=2^%s: %s: %s\n", exec, path, error);
-	return (errno);
 }
 
 /*

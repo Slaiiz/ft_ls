@@ -74,7 +74,7 @@ static void	print_center_part(t_dir *dir, t_file *file)
 
 /*
 ** print_right_part: Print the filename and eventual link references.
-** If the F_LIST flag is not present, this will be the only part
+** If the F_LONG flag is not present, this will be the only part
 ** to be printed among the three.
 */
 
@@ -93,7 +93,7 @@ static void	print_right_part(t_query *query, t_file *file)
 	ft_printf("%s", file->name);
 	if (query->flags & F_COLOR)
 		ft_printf("\x1b[49m{{eoc}}");
-	if (query->flags & F_LIST)
+	if (query->flags & F_LONG)
 	{
 		if (S_ISLNK(file->stats.st_mode))
 		{
@@ -108,12 +108,12 @@ static void	printout_directory(t_query *query, t_dir *dir)
 {
 	t_file	*file;
 
-	if (query->flags & F_LIST && dir != query->listing && dir->files != NULL)
+	if (query->flags & F_LONG && dir != query->listing && dir->files != NULL)
 		ft_printf("total %lu\n", get_directory_blocksize(dir));
 	file = dir->files;
 	while (file != NULL)
 	{
-		if (query->flags & F_LIST)
+		if (query->flags & F_LONG)
 		{
 			print_left_part(dir, file);
 			print_center_part(dir, file);
