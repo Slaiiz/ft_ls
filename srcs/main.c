@@ -71,8 +71,8 @@ static void	free_resources(t_query *query)
 			nextfile = currfile->next;
 			free((void*)currfile->name);
 			free((void*)currfile->path);
-			free((void*)currfile->pwuid);
-			free((void*)currfile->grgid);
+			free((void*)currfile->passw);
+			free((void*)currfile->group);
 			free((void*)currfile);
 			currfile = nextfile;
 		}
