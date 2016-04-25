@@ -6,7 +6,7 @@
 /*   By: vchesnea <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2016/04/20 16:42:05 by vchesnea          #+#    #+#             */
-/*   Updated: 2016/04/20 16:43:24 by vchesnea         ###   ########.fr       */
+/*   Updated: 2016/04/25 15:32:54 by vchesnea         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,5 +22,5 @@ size_t	ft_lstlen(t_list *lst)
 		++len;
 		lst = lst->next;
 	}
-	return (len)
+	return (len);
 }

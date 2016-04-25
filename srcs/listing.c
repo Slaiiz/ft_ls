@@ -40,7 +40,6 @@ static t_file	*append_file(char *name, t_dir *dir)
 /*
 ** append_directory: Add a directory entry in the listing.
 ** Still in debug.
-** FIXME: './ft_ls -lG /sgoinfre/goinfre/Apps/M.A.O./Doc/' has issues
 */
 
 static t_dir	*append_directory(t_query *query, char *path)
@@ -48,7 +47,6 @@ static t_dir	*append_directory(t_query *query, char *path)
 	t_dir	*new;
 	t_dir	*cur;
 
-	ft_printf("{{red;b}}Appending folder: {{eoc;}}%s\n", path);
 	if ((new = malloc(sizeof(t_dir))) == NULL)
 		exit(errno);
 	ft_bzero(&new->name_pad, 5 * sizeof(size_t));
@@ -92,9 +90,13 @@ static int		search_directory(t_query *query, char *path)
 	while ((ent = readdir(dir->temp)))
 	{
 		if (!ft_strncmp(ent->d_name, ".", 1) && !(query->flags & F_ALL))
-			continue;
+			continue ;
 		if (lstat((join = ft_strjoin(path, ent->d_name)), &stats))
-			exit(print_error(query->exec, path, strerror(errno)));
+		{
+			print_error(query->exec, join, strerror(errno));
+			free(join);
+			continue ;
+		}
 		if (S_ISDIR(stats.st_mode) && (query->flags & F_RECURSIVE)
 			&& ft_strncmp(ent->d_name, ".", 1))
 			search_directory(query, join);
@@ -125,8 +127,8 @@ int				process_query(t_query *query)
 	{
 		path = *query->paths++;
 		if (lstat(path, &stats))
-			exit(print_error(query->exec, path, strerror(errno)));
-		if (S_ISDIR(stats.st_mode))
+			print_error(query->exec, path, strerror(errno));
+		else if (S_ISDIR(stats.st_mode))
 			search_directory(query, path);
 		else
 		{

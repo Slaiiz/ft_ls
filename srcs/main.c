@@ -72,10 +72,10 @@ static void	free_resources(t_query *query)
 	t_file	*nextfile;
 
 	currdir = query->listing;
-	while (currdir != NULL)
+	while (currdir)
 	{
 		currfile = currdir->files;
-		while (currfile != NULL)
+		while (currfile)
 		{
 			nextfile = currfile->next;
 			free(currfile->name);

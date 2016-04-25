@@ -13,29 +13,31 @@
 #include "ft_ls.h"
 
 /*
-** print_left_part: Print the file attributes and its links.
+** print_left_part: Print the file's attributes and its links.
 */
 
 static void	print_left_part(t_dir *dir, t_file *file)
 {
 	size_t	n;
+	mode_t	mode;
 
-	S_ISDIR(file->stats.st_mode) ? ft_putchar('d') : 0;
-	S_ISLNK(file->stats.st_mode) ? ft_putchar('l') : 0;
-	S_ISBLK(file->stats.st_mode) ? ft_putchar('b') : 0;
-	S_ISCHR(file->stats.st_mode) ? ft_putchar('c') : 0;
-	S_ISREG(file->stats.st_mode) ? ft_putchar('-') : 0;
-	S_ISFIFO(file->stats.st_mode) ? ft_putchar('f') : 0;
-	S_ISSOCK(file->stats.st_mode) ? ft_putchar('s') : 0;
-	ft_putchar(file->stats.st_mode & S_IRUSR ? 'r' : '-');
-	ft_putchar(file->stats.st_mode & S_IWUSR ? 'w' : '-');
-	ft_putchar(file->stats.st_mode & S_IXUSR ? 'x' : '-');
-	ft_putchar(file->stats.st_mode & S_IRGRP ? 'r' : '-');
-	ft_putchar(file->stats.st_mode & S_IWGRP ? 'w' : '-');
-	ft_putchar(file->stats.st_mode & S_IXGRP ? 'x' : '-');
-	ft_putchar(file->stats.st_mode & S_IROTH ? 'r' : '-');
-	ft_putchar(file->stats.st_mode & S_IWOTH ? 'w' : '-');
-	ft_putchar(file->stats.st_mode & S_IXOTH ? 'x' : '-');
+	mode = file->stats.st_mode;
+	S_ISDIR(mode) ? ft_putchar('d') : 0;
+	S_ISLNK(mode) ? ft_putchar('l') : 0;
+	S_ISBLK(mode) ? ft_putchar('b') : 0;
+	S_ISCHR(mode) ? ft_putchar('c') : 0;
+	S_ISREG(mode) ? ft_putchar('-') : 0;
+	S_ISFIFO(mode) ? ft_putchar('f') : 0;
+	S_ISSOCK(mode) ? ft_putchar('s') : 0;
+	ft_putchar(mode & S_IRUSR ? 'r' : '-');
+	ft_putchar(mode & S_IWUSR ? 'w' : '-');
+	ft_putchar(mode & S_IXUSR ? 'x' : '-');
+	ft_putchar(mode & S_IRGRP ? 'r' : '-');
+	ft_putchar(mode & S_IWGRP ? 'w' : '-');
+	ft_putchar(mode & S_IXGRP ? 'x' : '-');
+	ft_putchar(mode & S_IROTH ? 'r' : '-');
+	ft_putchar(mode & S_IWOTH ? 'w' : '-');
+	ft_putchar(mode & S_IXOTH ? 'x' : '-');
 	n = dir->link_pad - ft_nbrlen(file->stats.st_nlink, 10) + 2;
 	while (n--)
 		ft_putchar(' ');
@@ -66,7 +68,7 @@ static void	print_center_part(t_dir *dir, t_file *file)
 	ft_printf("%lu ", file->stats.st_size);
 	date = file->stats.st_mtimespec.tv_sec;
 	ft_printf("%.6s ", ctime(&date) + 4);
-	if ((time(NULL) - date > 15552000) || (time(NULL) - date < -3600))
+	if ((time(NULL) - date > 15552000) || (time(NULL) - date < 0))
 		ft_printf(" %.4s ", ctime(&date) + 20);
 	else
 		ft_printf("%.5s ", ctime(&date) + 11);
@@ -75,7 +77,7 @@ static void	print_center_part(t_dir *dir, t_file *file)
 /*
 ** print_right_part: Print the filename and eventual link references.
 ** If the F_LONG flag is not present, this will be the only part
-** to be printed among the three.
+** to be printed among the other two.
 */
 
 static void	print_right_part(t_query *query, t_file *file)
@@ -104,14 +106,29 @@ static void	print_right_part(t_query *query, t_file *file)
 	}
 }
 
+/*
+** printout_directory: Print an entire directory file by file, following the
+** the total amount of blocks allocated whenever the F_LONG flag is specified.
+*/
+
 static void	printout_directory(t_query *query, t_dir *dir)
 {
 	t_file	*file;
+	size_t	total;
 
 	if (query->flags & F_LONG && dir != query->listing && dir->files != NULL)
-		ft_printf("total %lu\n", get_directory_blocksize(dir));
+	{
+		total = 0;
+		file = dir->files;
+		while (file)
+		{
+			total += file->stats.st_blocks;
+			file = file->next;
+		}
+		ft_printf("total %lu\n", total);
+	}
 	file = dir->files;
-	while (file != NULL)
+	while (file)
 	{
 		if (query->flags & F_LONG)
 		{
@@ -136,13 +153,15 @@ void		printout_listing(t_query *query)
 
 	dir = query->listing;
 	multiple = dir->next && dir->next->next;
-	while (dir != NULL)
+	if (dir->files == NULL)
+		dir = dir->next;
+	while (dir)
 	{
 		if (multiple && dir != query->listing)
 			ft_printf("%s:\n", strip_slashes(dir->name));
 		printout_directory(query, dir);
 		dir = dir->next;
-		if (dir != NULL)
+		if (dir)
 			ft_putchar('\n');
 	}
 }
