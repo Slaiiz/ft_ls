@@ -6,7 +6,7 @@ FLAGS:
 * l  : Show the long version of the output.
 * R  : Recurse into directories.
 * a  : Show EVERYTHING, that includes hidden files.
-* t  : Sort the files based on their timestamp.
+~~* t  : Sort the files based on their timestamp.~~ (that didn't work so well)
 * G  : Colors!
 
 TODO:
