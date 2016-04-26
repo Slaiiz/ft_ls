@@ -76,6 +76,8 @@ errno_t				print_error(const char *exec, char *path, char *error);
 char				*strip_slashes(char *path);
 int					set_query_paddings(t_query *query);
 int					get_directory_blocksize(t_dir *dir);
+void				sort_listing(t_dir **listing);
+void				sort_files(t_query *query, t_file **files);
 void				attach_data(t_file *file, struct stat *stats, char *path);
 
 #endif
