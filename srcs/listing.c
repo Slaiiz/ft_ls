@@ -55,9 +55,9 @@ static t_dir	*append_directory(t_query *query, char *path)
 		print_error(query->exec, path, strerror(errno));
 		return (NULL);
 	}
+	new->name = path;
 	new->files = NULL;
 	new->next = NULL;
-	new->name = path;
 	cur = query->listing;
 	if (cur == NULL)
 	{
@@ -103,6 +103,7 @@ static int		search_directory(t_query *query, char *path)
 		file = append_file(ent->d_name, dir);
 		attach_data(file, &stats, join);
 	}
+	sort_files(query, &dir->files);
 	closedir(dir->temp);
 	return (0);
 }

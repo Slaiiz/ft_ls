@@ -118,6 +118,7 @@ int			main(int argc, char **argv)
 	query.numpaths = argc ? argc : 1;
 	if (process_query(&query))
 		return (1);
+	sort_listing(&query.listing);
 	printout_listing(&query);
 	free_resources(&query);
 	return (0);
