@@ -39,7 +39,7 @@ static t_file	*append_file(char *name, t_dir *dir)
 
 /*
 ** append_directory: Add a directory entry in the listing.
-** Still in debug.
+** This entry will expose all the files it contains.
 */
 
 static t_dir	*append_directory(t_query *query, char *path)
@@ -94,11 +94,10 @@ static int		search_directory(t_query *query, char *path)
 		if (lstat((join = ft_strjoin(path, ent->d_name)), &stats))
 		{
 			print_error(query->exec, join, strerror(errno));
-			free(join);
 			continue ;
 		}
-		if (S_ISDIR(stats.st_mode) && (query->flags & F_RECURSIVE)
-			&& ft_strncmp(ent->d_name, ".", 1))
+		if (S_ISDIR(stats.st_mode)
+		&& (query->flags & F_RECURSIVE) && ft_strncmp(ent->d_name, ".", 1))
 			search_directory(query, join);
 		file = append_file(ent->d_name, dir);
 		attach_data(file, &stats, join);
@@ -130,7 +129,10 @@ int				process_query(t_query *query)
 		if (lstat(path, &stats))
 			print_error(query->exec, path, strerror(errno));
 		else if (S_ISDIR(stats.st_mode))
-			search_directory(query, path);
+		{
+			if (search_directory(query, path))
+				return (print_error(query->exec, path, strerror(errno)));
+		}
 		else
 		{
 			file = append_file(path, dir);
