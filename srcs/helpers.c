@@ -1,12 +1,12 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   helpers .c                                         :+:      :+:    :+:   */
+/*   helpers.c                                          :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: vchesnea <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2016/04/01 18:52:06 by vchesnea          #+#    #+#             */
-/*   Updated: 2016/04/26 11:08:23 by vchesnea         ###   ########.fr       */
+/*   Updated: 2016/04/27 10:42:46 by vchesnea         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,33 +17,32 @@
 ** by last access time order if the F_TIME flag is specified.
 ** I'm not especially proud of the way I shortened the code down to the
 ** 25 lines limit, but it's been quite a challenge nonetheless.
+** Update: Brought it down to 23 lines.
 */
 
 void	sort_files(t_query *query, t_file **files)
 {
 	t_file	**store;
 	t_file	*tmpfil;
-	int		correct;
 
 	store = files;
-	while ((correct = 1))
+	while (1)
 	{
-		while (*files && (*files)->next)
+		while (*files && (tmpfil = (*files)->next))
 		{
-			tmpfil = (*files)->next;
-			if ((ft_strcmp((*files)->name, tmpfil->name) > 0) ||
-				((query->flags & F_TIME) && ((*files)->stats.st_mtimespec.tv_sec
-				> tmpfil->stats.st_mtimespec.tv_sec)))
+			if (((query->flags & F_TIME) && (*files)->stats.st_mtimespec.tv_sec
+			< tmpfil->stats.st_mtimespec.tv_sec) || (!(query->flags & F_TIME)
+			&& ft_strcmp((*files)->name, tmpfil->name) > 0))
 			{
 				(*files)->next = tmpfil->next;
 				tmpfil->next = *files;
 				*files = tmpfil;
-				correct = 0;
+				break ;
 			}
 			files = &(*files)->next;
 		}
-		if (correct)
-			break ;
+		if (!(*files && tmpfil))
+			return ;
 		files = store;
 	}
 }
@@ -52,29 +51,26 @@ void	sort_files(t_query *query, t_file **files)
 ** sort_listing: Arrange the directory listing by lexicographical order.
 */
 
-void		sort_listing(t_dir **listing)
+void	sort_listing(t_dir **listing)
 {
 	t_dir	**store;
 	t_dir	*tmpdir;
-	int		correct;
 
 	store = listing;
-	while ((correct = 1))
+	while (1)
 	{
-		while (*listing && (*listing)->next)
+		while (*listing && (tmpdir = (*listing)->next))
 		{
-			tmpdir = (*listing)->next;
 			if (ft_strcmp((*listing)->name, tmpdir->name) > 0)
 			{
 				(*listing)->next = tmpdir->next;
 				tmpdir->next = *listing;
 				*listing = tmpdir;
-				correct = 0;
 			}
 			listing = &(*listing)->next;
 		}
-		if (correct)
-			break ;
+		if (!(*listing && tmpdir))
+			return ;
 		listing = store;
 	}
 }
@@ -84,7 +80,7 @@ void		sort_listing(t_dir **listing)
 ** Gets the actual stuff into the file structure.
 */
 
-void		attach_data(t_file *file, struct stat *stats, char *path)
+void	attach_data(t_file *file, struct stat *stats, char *path)
 {
 	struct group	*group;
 	struct passwd	*passwd;
@@ -102,7 +98,7 @@ void		attach_data(t_file *file, struct stat *stats, char *path)
 ** Used notably for aesthetic purposes.
 */
 
-char		*strip_slashes(char *path)
+char	*strip_slashes(char *path)
 {
 	char	*tmp;
 
@@ -121,7 +117,7 @@ char		*strip_slashes(char *path)
 ** to print, so as to keep every information perfectly aligned.
 */
 
-int			set_query_paddings(t_query *query)
+int		set_query_paddings(t_query *query)
 {
 	t_dir	*dir;
 	t_file	*file;
