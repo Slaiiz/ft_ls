@@ -141,7 +141,7 @@ static void	printout_directory(t_query *query, t_dir *dir)
 }
 
 /*
-** printout_listing: The last step in the program, print everything so far.
+** printout_listing: The function that calls each of the above.
 ** We skip the first dummy list element (If files were queried, it will
 ** contain all of them).
 */

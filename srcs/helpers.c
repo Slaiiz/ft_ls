@@ -66,6 +66,7 @@ void	sort_listing(t_dir **listing)
 				(*listing)->next = tmpdir->next;
 				tmpdir->next = *listing;
 				*listing = tmpdir;
+				break ;
 			}
 			listing = &(*listing)->next;
 		}
@@ -87,10 +88,14 @@ void	attach_data(t_file *file, struct stat *stats, char *path)
 
 	file->path = path;
 	file->stats = *stats;
-	passwd = getpwuid(stats->st_uid);
-	file->passw = ft_strdup(passwd->pw_name);
-	group = getgrgid(stats->st_gid);
-	file->group = ft_strdup(group->gr_name);
+	if ((passwd = getpwuid(stats->st_uid)) != NULL)
+		file->passw = ft_strdup(passwd->pw_name);
+	else
+		file->passw = ft_uitoa64(stats->st_uid);
+	if ((group = getgrgid(stats->st_gid)) != NULL)
+		file->group = ft_strdup(group->gr_name);
+	else
+		file->group = ft_uitoa64(stats->st_gid);
 }
 
 /*
