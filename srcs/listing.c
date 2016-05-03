@@ -96,8 +96,9 @@ static int		search_directory(t_query *query, char *path)
 			print_error(query->exec, join, strerror(errno));
 			continue ;
 		}
-		if (S_ISDIR(stats.st_mode)
-		&& (query->flags & F_RECURSIVE) && ft_strncmp(ent->d_name, ".", 1))
+		if (S_ISDIR(stats.st_mode) && (query->flags & F_RECURSIVE)
+		&& (ft_strncmp(ent->d_name, ".", 1) || (ft_strcmp(ent->d_name, ".")
+		&& ft_strcmp(ent->d_name, "..") && (query->flags & F_ALL))))
 			search_directory(query, join);
 		file = append_file(ent->d_name, dir);
 		attach_data(file, &stats, join);
