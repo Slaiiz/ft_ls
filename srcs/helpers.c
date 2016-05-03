@@ -24,15 +24,18 @@ void	sort_files(t_query *query, t_file **files)
 {
 	t_file	**store;
 	t_file	*tmpfil;
+	int		reverse;
 
+	reverse = (query->flags & F_REVERSE) && 1;
 	store = files;
 	while (1)
 	{
 		while (*files && (tmpfil = (*files)->next))
 		{
-			if (((query->flags & F_TIME) && (*files)->stats.st_mtimespec.tv_sec
-			< tmpfil->stats.st_mtimespec.tv_sec) || (!(query->flags & F_TIME)
-			&& ft_strcmp((*files)->name, tmpfil->name) > 0))
+			if (((query->flags & F_TIME) && ((*files)->stats.st_mtimespec.tv_sec
+			< tmpfil->stats.st_mtimespec.tv_sec) ^ reverse)
+			|| (!(query->flags & F_TIME) && reverse
+			^ (ft_strcmp((*files)->name, tmpfil->name) > 0)))
 			{
 				(*files)->next = tmpfil->next;
 				tmpfil->next = *files;

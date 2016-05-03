@@ -44,6 +44,7 @@ typedef struct		s_dir
 	size_t			user_pad;
 	size_t			grup_pad;
 	size_t			size_pad;
+	time_t			*modf_time;
 }					t_dir;
 
 typedef struct		s_file
