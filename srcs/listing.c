@@ -74,6 +74,7 @@ static t_dir	*append_directory(t_query *query, char *path)
 ** search_directory: Recursively collect data on files contained in the current
 ** working path, each directory encountered adds an entry in the listing.
 ** The first step in the function is ensuring the given path ends with a slash.
+** FIXME: Over the 25 lines limit.
 */
 
 static int		search_directory(t_query *query, char *path)
@@ -91,17 +92,16 @@ static int		search_directory(t_query *query, char *path)
 	{
 		if (!ft_strncmp(ent->d_name, ".", 1) && !(query->flags & F_ALL))
 			continue ;
-		if (lstat((join = ft_strjoin(path, ent->d_name)), &stats))
+		if (!lstat((join = ft_strjoin(path, ent->d_name)), &stats))
 		{
-			print_error(query->exec, join, strerror(errno));
-			continue ;
+			if (S_ISDIR(stats.st_mode) && (query->flags & F_RECURSIVE)
+			&& (ft_strcmp(ent->d_name, "..") && ft_strcmp(ent->d_name, ".")))
+				search_directory(query, join);
+			file = append_file(ent->d_name, dir);
+			attach_data(file, &stats, join);
 		}
-		if (S_ISDIR(stats.st_mode) && (query->flags & F_RECURSIVE)
-		&& (ft_strncmp(ent->d_name, ".", 1) || (ft_strcmp(ent->d_name, ".")
-		&& ft_strcmp(ent->d_name, "..") && (query->flags & F_ALL))))
-			search_directory(query, join);
-		file = append_file(ent->d_name, dir);
-		attach_data(file, &stats, join);
+		else
+			print_error(query->exec, join, strerror(errno));
 	}
 	sort_files(query, &dir->files);
 	closedir(dir->temp);
@@ -129,16 +129,13 @@ int				process_query(t_query *query)
 		path = *query->paths++;
 		if (lstat(path, &stats))
 			print_error(query->exec, path, strerror(errno));
-		else if (S_ISDIR(stats.st_mode))
-		{
-			if (search_directory(query, path))
-				return (print_error(query->exec, path, strerror(errno)));
-		}
-		else
+		if (!S_ISDIR(stats.st_mode))
 		{
 			file = append_file(path, dir);
 			attach_data(file, &stats, ft_strdup(path));
 		}
+		else if (search_directory(query, path))
+			return (print_error(query->exec, path, strerror(errno)));
 	}
 	return (set_query_paddings(query));
 }

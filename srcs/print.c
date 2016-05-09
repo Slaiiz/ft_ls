@@ -102,8 +102,8 @@ static void	print_right_part(t_query *query, t_file *file)
 			link[readlink(file->path, link, 255)] = '\0';
 			ft_printf(" -> %.255s", link);
 		}
-		ft_putchar('\n');
 	}
+	ft_putchar('\n');
 }
 
 /*

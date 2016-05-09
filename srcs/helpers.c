@@ -17,7 +17,7 @@
 ** by last access time order if the F_TIME flag is specified.
 ** I'm not especially proud of the way I shortened the code down to the
 ** 25 lines limit, but it's been quite a challenge nonetheless.
-** Update: Brought it down to 23 lines.
+** FIXME: Must bring down to 25 lines again.
 */
 
 void	sort_files(t_query *query, t_file **files)
