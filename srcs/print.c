@@ -6,20 +6,23 @@
 /*   By: vchesnea <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2016/04/01 18:52:25 by vchesnea          #+#    #+#             */
-/*   Updated: 2016/04/20 17:16:05 by vchesnea         ###   ########.fr       */
+/*   Updated: 2016/05/09 17:35:51 by vchesnea         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "ft_ls.h"
 
 /*
-** print_left_part: Print the file's attributes and its links.
+** print_left_part: Print the file's attributes.
+** HACK: Super heavily reduced to the point of
+** rendering it possibly not portable.
 */
 
-static void	print_left_part(t_dir *dir, t_file *file)
+static void	print_left_part(t_file *file)
 {
-	size_t	n;
 	mode_t	mode;
+	int		bit;
+	int		i;
 
 	mode = file->stats.st_mode;
 	S_ISDIR(mode) ? ft_putchar('d') : 0;
@@ -29,24 +32,24 @@ static void	print_left_part(t_dir *dir, t_file *file)
 	S_ISREG(mode) ? ft_putchar('-') : 0;
 	S_ISFIFO(mode) ? ft_putchar('f') : 0;
 	S_ISSOCK(mode) ? ft_putchar('s') : 0;
-	ft_putchar(mode & S_IRUSR ? 'r' : '-');
-	ft_putchar(mode & S_IWUSR ? 'w' : '-');
-	ft_putchar(mode & S_IXUSR ? 'x' : '-');
-	ft_putchar(mode & S_IRGRP ? 'r' : '-');
-	ft_putchar(mode & S_IWGRP ? 'w' : '-');
-	ft_putchar(mode & S_IXGRP ? 'x' : '-');
-	ft_putchar(mode & S_IROTH ? 'r' : '-');
-	ft_putchar(mode & S_IWOTH ? 'w' : '-');
-	ft_putchar(mode & S_IXOTH ? 'x' : '-');
-	n = dir->link_pad - ft_nbrlen(file->stats.st_nlink, 10) + 2;
-	while (n--)
-		ft_putchar(' ');
-	ft_printf("%d ", file->stats.st_nlink);
+	bit = mode;
+	i = 3;
+	while (i--)
+	{
+		ft_putchar(mode & S_IRUSR ? 'r' : '-');
+		ft_putchar(mode & S_IWUSR ? 'w' : '-');
+		if (bit & S_ISUID)
+			ft_putchar("TtSsSs"[2 * i + ((mode & S_IXUSR) && 1)]);
+		else
+			ft_putchar(mode & S_IXUSR ? 'x' : '-');
+		mode <<= 3;
+		bit <<= 1;
+	}
 }
 
 /*
-** print_center_part: Print the owner's name, group, the file size
-** and also the time of last modification.
+** print_center_part: Print the links, owner's name, group,
+** the file size and also the time of last modification.
 */
 
 static void	print_center_part(t_dir *dir, t_file *file)
@@ -54,6 +57,10 @@ static void	print_center_part(t_dir *dir, t_file *file)
 	size_t	n;
 	time_t	date;
 
+	n = dir->link_pad - ft_nbrlen(file->stats.st_nlink, 10) + 2;
+	while (n--)
+		ft_putchar(' ');
+	ft_printf("%d ", file->stats.st_nlink);
 	ft_printf("%s  ", file->passw);
 	n = dir->user_pad - ft_strlen(file->passw);
 	while (n--)
@@ -132,7 +139,7 @@ static void	printout_directory(t_query *query, t_dir *dir)
 	{
 		if (query->flags & F_LONG)
 		{
-			print_left_part(dir, file);
+			print_left_part(file);
 			print_center_part(dir, file);
 		}
 		print_right_part(query, file);

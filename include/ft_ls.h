@@ -33,6 +33,13 @@
 # define F_TIME		   16
 # define F_COLOR	   32
 
+/*
+** The originals are ludicrously long:
+*/
+
+# define TIME_SEC		st_mtimespec.tv_sec
+# define TIME_NSEC		st_mtimespec.tv_nsec
+
 typedef struct		s_dir
 {
 	DIR				*temp;

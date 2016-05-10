@@ -106,7 +106,7 @@ int			main(int argc, char **argv)
 	t_query	query;
 
 	ft_bzero(&query, sizeof(t_query));
-	query.exec = ft_strrchr(argv[0], '/') + 1;
+	query.exec = argv[0];
 	if (parse_flags(&query, &argc, &argv))
 	{
 		ft_printf("usage: %s [-aGlRrt] [file ...]\n", query.exec);

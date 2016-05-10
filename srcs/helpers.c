@@ -6,7 +6,7 @@
 /*   By: vchesnea <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2016/04/01 18:52:06 by vchesnea          #+#    #+#             */
-/*   Updated: 2016/04/27 10:42:46 by vchesnea         ###   ########.fr       */
+/*   Updated: 2016/05/09 17:35:45 by vchesnea         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,7 +17,6 @@
 ** by last access time order if the F_TIME flag is specified.
 ** I'm not especially proud of the way I shortened the code down to the
 ** 25 lines limit, but it's been quite a challenge nonetheless.
-** FIXME: Must bring down to 25 lines again.
 */
 
 void	sort_files(t_query *query, t_file **files)
@@ -26,16 +25,18 @@ void	sort_files(t_query *query, t_file **files)
 	t_file	*tmpfil;
 	int		reverse;
 
-	reverse = (query->flags & F_REVERSE) && 1;
 	store = files;
-	while (1)
+	reverse = (query->flags & F_REVERSE) && 1;
+	while (*files && (*files)->next)
 	{
-		while (*files && (tmpfil = (*files)->next))
+		files = store;
+		while ((tmpfil = (*files)->next))
 		{
-			if (((query->flags & F_TIME) && ((*files)->stats.st_mtimespec.tv_sec
-			< tmpfil->stats.st_mtimespec.tv_sec) ^ reverse)
-			|| (!(query->flags & F_TIME) && reverse
-			^ (ft_strcmp((*files)->name, tmpfil->name) > 0)))
+			if (reverse ^ (((query->flags & F_TIME) && ((*files)->stats.TIME_SEC
+			< tmpfil->stats.TIME_SEC || ((*files)->stats.TIME_SEC
+			== tmpfil->stats.TIME_SEC && ((*files)->stats.TIME_NSEC
+			< tmpfil->stats.TIME_NSEC)))) || (!(query->flags & F_TIME)
+			&& ft_strcmp((*files)->name, tmpfil->name) > 0)))
 			{
 				(*files)->next = tmpfil->next;
 				tmpfil->next = *files;
@@ -44,9 +45,6 @@ void	sort_files(t_query *query, t_file **files)
 			}
 			files = &(*files)->next;
 		}
-		if (!(*files && tmpfil))
-			return ;
-		files = store;
 	}
 }
 
