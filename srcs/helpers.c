@@ -32,10 +32,10 @@ void	sort_files(t_query *query, t_file **files)
 		files = store;
 		while ((tmpfil = (*files)->next))
 		{
-			if (reverse ^ (((query->flags & F_TIME) && ((*files)->stats.TIME_SEC
-			< tmpfil->stats.TIME_SEC || ((*files)->stats.TIME_SEC
-			== tmpfil->stats.TIME_SEC && ((*files)->stats.TIME_NSEC
-			< tmpfil->stats.TIME_NSEC)))) || (!(query->flags & F_TIME)
+			if (reverse ^ (((query->flags & F_TIME) && ((*files)->stats.T_SEC
+			< tmpfil->stats.T_SEC || ((*files)->stats.T_SEC
+			== tmpfil->stats.T_SEC && ((*files)->stats.T_NSEC
+			< tmpfil->stats.T_NSEC || reverse)))) || (!(query->flags & F_TIME)
 			&& ft_strcmp((*files)->name, tmpfil->name) > 0)))
 			{
 				(*files)->next = tmpfil->next;
@@ -58,8 +58,9 @@ void	sort_listing(t_dir **listing)
 	t_dir	*tmpdir;
 
 	store = listing;
-	while (1)
+	while (*listing && (*listing)->next)
 	{
+		listing = store;
 		while (*listing && (tmpdir = (*listing)->next))
 		{
 			if (ft_strcmp((*listing)->name, tmpdir->name) > 0)
@@ -71,9 +72,6 @@ void	sort_listing(t_dir **listing)
 			}
 			listing = &(*listing)->next;
 		}
-		if (!(*listing && tmpdir))
-			return ;
-		listing = store;
 	}
 }
 
