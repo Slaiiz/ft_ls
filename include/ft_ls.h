@@ -6,7 +6,7 @@
 /*   By: vchesnea <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2016/03/30 14:23:15 by vchesnea          #+#    #+#             */
-/*   Updated: 2016/04/20 17:13:48 by vchesnea         ###   ########.fr       */
+/*   Updated: 2016/05/11 15:13:15 by vchesnea         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -37,8 +37,8 @@
 ** The originals are ludicrously long:
 */
 
-# define TIME_SEC		st_mtimespec.tv_sec
-# define TIME_NSEC		st_mtimespec.tv_nsec
+# define T_SEC		st_mtimespec.tv_sec
+# define T_NSEC		st_mtimespec.tv_nsec
 
 typedef struct		s_dir
 {
