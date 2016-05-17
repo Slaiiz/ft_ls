@@ -24,6 +24,29 @@ errno_t		print_error(const char *exec, char *path, char *error)
 }
 
 /*
+** sort_query: Lexicographically reorder the given paths.
+** Its sole purpose: comply further with the real 'ls' utility.
+*/
+
+static void	sort_query(int argc, char **argv)
+{
+	char	*tmp;
+	int		store;
+
+	store = argc;
+	while (--argc > 0)
+	{
+		if (ft_strcmp(argv[argc], argv[argc - 1]) < 0)
+		{
+			tmp = argv[argc - 1];
+			argv[argc - 1] = argv[argc];
+			argv[argc] = tmp;
+			argc = store;
+		}
+	}
+}
+
+/*
 ** parse_flags: Read sequences of tokens beginning with a hyphen
 ** that will alter the flow of the program.
 ** FIXME: Had to use a dirty trick to fit in the 25 lines limit.
@@ -116,9 +139,10 @@ int			main(int argc, char **argv)
 		argv[0] = ".";
 	query.paths = argv;
 	query.numpaths = argc ? argc : 1;
+	sort_query(argc, argv);
 	if (process_query(&query))
 		return (1);
-	sort_listing(&query.listing);
+	sort_listing(&query, &query.listing);
 	printout_listing(&query);
 	free_resources(&query);
 	return (0);
