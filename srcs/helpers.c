@@ -52,7 +52,7 @@ void	sort_files(t_query *query, t_file **files)
 ** sort_listing: Arrange the directory listing by lexicographical order.
 */
 
-void	sort_listing(t_dir **listing)
+void	sort_listing(t_query *query, t_dir **listing)
 {
 	t_dir	**store;
 	t_dir	*tmpdir;
@@ -72,6 +72,12 @@ void	sort_listing(t_dir **listing)
 			}
 			listing = &(*listing)->next;
 		}
+	}
+	tmpdir = *store;
+	while (tmpdir)
+	{
+		sort_files(query, &tmpdir->files);
+		tmpdir = tmpdir->next;
 	}
 }
 
