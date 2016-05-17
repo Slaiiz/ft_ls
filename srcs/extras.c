@@ -16,7 +16,7 @@ void	print_extended_attributes(t_file *file)
 {
 	acl_t	attr;
 
-	if (listxattr(file->path, NULL, 0, XATTR_NOFOLLOW))
+	if (listxattr(file->path, NULL, 0, XATTR_NOFOLLOW) > 0)
 		write(1, "@", 1);
 	else if ((attr = acl_get_file(file->path, ACL_TYPE_EXTENDED)))
 	{
