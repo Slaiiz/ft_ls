@@ -32,19 +32,19 @@ static void	print_left_part(t_file *file)
 	S_ISREG(mode) ? ft_putchar('-') : 0;
 	S_ISFIFO(mode) ? ft_putchar('f') : 0;
 	S_ISSOCK(mode) ? ft_putchar('s') : 0;
-	bit = mode;
 	i = 3;
 	while (i--)
 	{
 		ft_putchar(mode & S_IRUSR ? 'r' : '-');
 		ft_putchar(mode & S_IWUSR ? 'w' : '-');
+		bit = mode >> (2 * (2 - i));
 		if (bit & S_ISUID)
 			ft_putchar("TtSsSs"[2 * i + ((mode & S_IXUSR) && 1)]);
 		else
 			ft_putchar(mode & S_IXUSR ? 'x' : '-');
 		mode <<= 3;
-		bit <<= 1;
 	}
+	print_extended_attributes(file);
 }
 
 /*
@@ -57,7 +57,7 @@ static void	print_center_part(t_dir *dir, t_file *file)
 	size_t	n;
 	time_t	date;
 
-	n = dir->link_pad - ft_nbrlen(file->stats.st_nlink, 10) + 2;
+	n = dir->link_pad - ft_nbrlen(file->stats.st_nlink, 10) + 1;
 	while (n--)
 		ft_putchar(' ');
 	ft_printf("%d ", file->stats.st_nlink);

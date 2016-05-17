@@ -74,16 +74,19 @@ static t_dir	*append_directory(t_query *query, char *path)
 ** search_directory: Recursively collect data on files contained in the current
 ** working path, each directory encountered adds an entry in the listing.
 ** The first step in the function is ensuring the given path ends with a slash.
-** FIXME: Over the 25 lines limit.
+**
+** This algorithm only implements a one-pass recursion so the results won't
+** be yielded until the very last file is found. As a consequence it is not
+** advised to search huge directories even if you just want a glimpse of what's
+** inside. (That'd be easy but I ran out of lines ya see ...)
 */
 
 static int		search_directory(t_query *query, char *path)
 {
-	t_dir			*dir;
 	struct dirent	*ent;
+	t_dir			*dir;
 	char			*join;
 	t_file			*file;
-	struct stat		stats;
 
 	path = ft_strjoin(path, path[ft_strlen(path) - 1] == '/' ? "" : "/");
 	if ((dir = append_directory(query, path)) == NULL)
@@ -92,18 +95,17 @@ static int		search_directory(t_query *query, char *path)
 	{
 		if (!ft_strncmp(ent->d_name, ".", 1) && !(query->flags & F_ALL))
 			continue ;
-		if (!lstat((join = ft_strjoin(path, ent->d_name)), &stats))
+		if (!lstat((join = ft_strjoin(path, ent->d_name)), &query->stats))
 		{
-			if (S_ISDIR(stats.st_mode) && (query->flags & F_RECURSIVE)
+			file = append_file(ent->d_name, dir);
+			attach_data(file, &query->stats, join);
+			if (S_ISDIR(query->stats.st_mode) && (query->flags & F_RECURSIVE)
 			&& (ft_strcmp(ent->d_name, "..") && ft_strcmp(ent->d_name, ".")))
 				search_directory(query, join);
-			file = append_file(ent->d_name, dir);
-			attach_data(file, &stats, join);
 		}
 		else
 			print_error(query->exec, join, strerror(errno));
 	}
-	sort_files(query, &dir->files);
 	closedir(dir->temp);
 	return (0);
 }
@@ -129,7 +131,7 @@ int				process_query(t_query *query)
 		path = *query->paths++;
 		if (lstat(path, &stats))
 			print_error(query->exec, path, strerror(errno));
-		if (!S_ISDIR(stats.st_mode))
+		else if (!S_ISDIR(stats.st_mode))
 		{
 			file = append_file(path, dir);
 			attach_data(file, &stats, ft_strdup(path));
