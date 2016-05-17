@@ -23,6 +23,7 @@
 # include <sys/types.h>
 # include <sys/xattr.h>
 # include <uuid/uuid.h>
+# include <sys/acl.h>
 
 # include "libft.h"
 
@@ -76,6 +77,7 @@ typedef struct		s_query
 
 int					process_query(t_query *query);
 void				printout_listing(t_query *query);
+void				print_extended_attributes(t_file *file);
 errno_t				print_error(const char *exec, char *path, char *error);
 
 /*
