@@ -93,7 +93,7 @@ static void	print_right_part(t_query *query, t_file *file)
 
 	if (query->flags & F_COLOR)
 	{
-		file->stats.st_mode & S_IXUSR ? ft_printf("{{red}}") : 0;
+		file->stats.st_mode & 0111 ? ft_printf("{{red}}") : 0;
 		S_ISDIR(file->stats.st_mode) ? ft_printf("{{blue}}") : 0;
 		S_ISLNK(file->stats.st_mode) ? ft_printf("{{magenta}}") : 0;
 		S_ISBLK(file->stats.st_mode) ? ft_printf("\x1b[46m{{blue}}") : 0;
