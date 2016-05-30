@@ -142,8 +142,6 @@ int			main(int argc, char **argv)
 	sort_query(argc, argv);
 	if (process_query(&query))
 		return (1);
-	sort_listing(&query, &query.listing);
-	printout_listing(&query);
 	free_resources(&query);
 	return (0);
 }

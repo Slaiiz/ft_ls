@@ -111,6 +111,32 @@ static int		search_directory(t_query *query, char *path)
 }
 
 /*
+** printout_listing: The function that calls each of the above.
+** We skip the first dummy list element (If files were queried, it will
+** contain all of them).
+*/
+
+static void		printout_listing(t_query *query)
+{
+	t_dir	*dir;
+	int		multiple;
+
+	dir = query->listing;
+	multiple = dir->next && dir->next->next;
+	if (dir->files == NULL)
+		dir = dir->next;
+	while (dir)
+	{
+		if (multiple && dir != query->listing)
+			ft_printf("%s:\n", strip_slashes(dir->name));
+		printout_directory(query, dir);
+		dir = dir->next;
+		if (dir)
+			ft_putchar('\n');
+	}
+}
+
+/*
 ** process_query: Where the magic is. First create a dummy directory pointing
 ** at the current working path. In the event a file is queried, it is assumed
 ** to be contained in that directory. For each query, if it is a directory,
@@ -139,5 +165,8 @@ int				process_query(t_query *query)
 		else if (search_directory(query, path))
 			return (print_error(query->exec, path, strerror(errno)));
 	}
-	return (set_query_paddings(query));
+	set_query_paddings(query);
+	sort_listing(query, &query->listing);
+	printout_listing(query);
+	return (0);
 }

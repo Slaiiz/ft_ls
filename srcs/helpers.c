@@ -127,7 +127,7 @@ char	*strip_slashes(char *path)
 ** to print, so as to keep every information perfectly aligned.
 */
 
-int		set_query_paddings(t_query *query)
+void	set_query_paddings(t_query *query)
 {
 	t_dir	*dir;
 	t_file	*file;
@@ -152,5 +152,4 @@ int		set_query_paddings(t_query *query)
 		}
 		dir = dir->next;
 	}
-	return (0);
 }

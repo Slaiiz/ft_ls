@@ -12,6 +12,21 @@
 
 #include "ft_ls.h"
 
+static void	print_extended_attributes(t_file *file)
+{
+	acl_t	attr;
+
+	if (listxattr(file->path, NULL, 0, XATTR_NOFOLLOW) > 0)
+		write(1, "@", 1);
+	else if ((attr = acl_get_file(file->path, ACL_TYPE_EXTENDED)))
+	{
+		write(1, "+", 1);
+		acl_free(attr);
+	}
+	else
+		write(1, " ", 1);
+}
+
 /*
 ** print_left_part: Print the file's attributes.
 ** HACK: Super heavily reduced to the point of
@@ -118,7 +133,7 @@ static void	print_right_part(t_query *query, t_file *file)
 ** the total amount of blocks allocated whenever the F_LONG flag is specified.
 */
 
-static void	printout_directory(t_query *query, t_dir *dir)
+void	printout_directory(t_query *query, t_dir *dir)
 {
 	t_file	*file;
 	size_t	total;
@@ -144,31 +159,5 @@ static void	printout_directory(t_query *query, t_dir *dir)
 		}
 		print_right_part(query, file);
 		file = file->next;
-	}
-}
-
-/*
-** printout_listing: The function that calls each of the above.
-** We skip the first dummy list element (If files were queried, it will
-** contain all of them).
-*/
-
-void		printout_listing(t_query *query)
-{
-	t_dir	*dir;
-	int		multiple;
-
-	dir = query->listing;
-	multiple = dir->next && dir->next->next;
-	if (dir->files == NULL)
-		dir = dir->next;
-	while (dir)
-	{
-		if (multiple && dir != query->listing)
-			ft_printf("%s:\n", strip_slashes(dir->name));
-		printout_directory(query, dir);
-		dir = dir->next;
-		if (dir)
-			ft_putchar('\n');
 	}
 }

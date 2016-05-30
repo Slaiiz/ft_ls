@@ -76,8 +76,7 @@ typedef struct		s_query
 }					t_query;
 
 int					process_query(t_query *query);
-void				printout_listing(t_query *query);
-void				print_extended_attributes(t_file *file);
+void				printout_directory(t_query *query, t_dir *dir);
 errno_t				print_error(const char *exec, char *path, char *error);
 
 /*
@@ -85,7 +84,7 @@ errno_t				print_error(const char *exec, char *path, char *error);
 */
 
 char				*strip_slashes(char *path);
-int					set_query_paddings(t_query *query);
+void				set_query_paddings(t_query *query);
 int					get_directory_blocksize(t_dir *dir);
 void				sort_listing(t_query *query, t_dir **listing);
 void				sort_files(t_query *query, t_file **files);
