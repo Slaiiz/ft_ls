@@ -84,10 +84,7 @@ static void	print_center_part(t_dir *dir, t_file *file)
 	n = dir->grup_pad - ft_strlen(file->group);
 	while (n--)
 		ft_putchar(' ');
-	n = dir->size_pad - ft_nbrlen(file->stats.st_size, 10);
-	while (n--)
-		ft_putchar(' ');
-	ft_printf("%lu ", file->stats.st_size);
+	select_size_display_mode(dir, file);
 	date = file->stats.st_mtimespec.tv_sec;
 	ft_printf("%.6s ", ctime(&date) + 4);
 	if ((time(NULL) - date > 15552000) || (time(NULL) - date < 0))
@@ -133,7 +130,7 @@ static void	print_right_part(t_query *query, t_file *file)
 ** the total amount of blocks allocated whenever the F_LONG flag is specified.
 */
 
-void	printout_directory(t_query *query, t_dir *dir)
+void		printout_directory(t_query *query, t_dir *dir)
 {
 	t_file	*file;
 	size_t	total;

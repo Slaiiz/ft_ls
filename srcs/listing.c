@@ -6,7 +6,7 @@
 /*   By: vchesnea <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2016/04/01 18:52:11 by vchesnea          #+#    #+#             */
-/*   Updated: 2016/05/09 17:35:47 by vchesnea         ###   ########.fr       */
+/*   Updated: 2016/06/01 15:43:16 by vchesnea         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -74,7 +74,7 @@ static t_dir	*append_directory(t_query *query, char *path)
 ** search_directory: Recursively collect data on files contained in the current
 ** working path, each directory encountered adds an entry in the listing.
 ** The first step in the function is ensuring the given path ends with a slash.
-**
+** -
 ** This algorithm only implements a one-pass recursion so the results won't
 ** be yielded until the very last file is found. As a consequence it is not
 ** advised to search huge directories even if you just want a glimpse of what's
@@ -88,14 +88,13 @@ static int		search_directory(t_query *query, char *path)
 	char			*join;
 	t_file			*file;
 
-	path = ft_strjoin(path, path[ft_strlen(path) - 1] == '/' ? "" : "/");
-	if ((dir = append_directory(query, path)) == NULL)
+	if ((dir = append_directory(query, ft_strjoin(path, "/"))) == NULL)
 		return (1);
 	while ((ent = readdir(dir->temp)))
 	{
 		if (!ft_strncmp(ent->d_name, ".", 1) && !(query->flags & F_ALL))
 			continue ;
-		if (!lstat((join = ft_strjoin(path, ent->d_name)), &query->stats))
+		if (!lstat((join = ft_strjoin(dir->name, ent->d_name)), &query->stats))
 		{
 			file = append_file(ent->d_name, dir);
 			attach_data(file, &query->stats, join);
@@ -128,7 +127,10 @@ static void		printout_listing(t_query *query)
 	while (dir)
 	{
 		if (multiple && dir != query->listing)
-			ft_printf("%s:\n", strip_slashes(dir->name));
+		{
+			dir->name[ft_strlen(dir->name) - 1] = '\0';
+			ft_printf("%s:\n", dir->name);
+		}
 		printout_directory(query, dir);
 		dir = dir->next;
 		if (dir)
