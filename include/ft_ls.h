@@ -38,8 +38,10 @@
 ** The originals are ludicrously long:
 */
 
-# define T_SEC		st_mtimespec.tv_sec
-# define T_NSEC		st_mtimespec.tv_nsec
+# define T_SEC			st_mtimespec.tv_sec
+# define T_NSEC			st_mtimespec.tv_nsec
+
+# define S_ISDEVICE(x)	(S_ISCHR(x) || S_ISBLK(x))
 
 typedef struct		s_dir
 {
@@ -83,11 +85,11 @@ errno_t				print_error(const char *exec, char *path, char *error);
 ** Helper functions
 */
 
-char				*strip_slashes(char *path);
 void				set_query_paddings(t_query *query);
 int					get_directory_blocksize(t_dir *dir);
-void				sort_listing(t_query *query, t_dir **listing);
 void				sort_files(t_query *query, t_file **files);
+void				sort_listing(t_query *query, t_dir **listing);
+void				select_size_display_mode(t_dir *dir, t_file *file);
 void				attach_data(t_file *file, struct stat *stats, char *path);
 
 #endif

@@ -104,27 +104,38 @@ void	attach_data(t_file *file, struct stat *stats, char *path)
 }
 
 /*
-** strip_slashes: Return the text preceeding the rightmost slashes '/'.
-** Used notably for aesthetic purposes.
+** select_size_display_mode: Employs one of two methods to print the 'size'
+** field of a file depending on the type of the file.
+** FIXME:
+** /dev/io8log files give major and minor numbers in different orders
+** compared to the ls utility. Why?
 */
 
-char	*strip_slashes(char *path)
+void	select_size_display_mode(t_dir *dir, t_file *file)
 {
-	char	*tmp;
+	size_t	n;
 
-	tmp = path + ft_strlen(path);
-	while (--tmp >= path)
+	if (S_ISDEVICE(file->stats.st_mode))
 	{
-		if (*tmp != '/')
-			break ;
-		*tmp = '\0';
+		n = file->stats.st_rdev;
+		ft_printf("%3hhu, %3hhu ", major(n), minor(n));
 	}
-	return (path);
+	else
+	{
+		n = dir->size_pad - ft_nbrlen(file->stats.st_size, 10);
+		while (n--)
+			ft_putchar(' ');
+		ft_printf("%lu ", file->stats.st_size);
+	}
 }
 
 /*
 ** set_query_paddings: Take note of the longest strings ft_ls is going to have
 ** to print, so as to keep every information perfectly aligned.
+** -
+** At the end of the innermost loop is a special case for device files,
+** we set the size padding to the arbitrary value of 8, the space required
+** by ls to print minor and major device numbers: <major>, <minor>
 */
 
 void	set_query_paddings(t_query *query)
@@ -148,6 +159,8 @@ void	set_query_paddings(t_query *query)
 				dir->size_pad = ft_nbrlen(file->stats.st_size, 10);
 			if (ft_strlen(file->name) > dir->name_pad)
 				dir->name_pad = ft_strlen(file->name);
+			if (S_ISDEVICE(file->stats.st_mode) && 8 > dir->size_pad)
+				dir->size_pad = 8;
 			file = file->next;
 		}
 		dir = dir->next;
