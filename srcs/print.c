@@ -17,14 +17,14 @@ static void	print_extended_attributes(t_file *file)
 	acl_t	attr;
 
 	if (listxattr(file->path, NULL, 0, XATTR_NOFOLLOW) > 0)
-		write(1, "@", 1);
+		ft_putchar('@');
 	else if ((attr = acl_get_file(file->path, ACL_TYPE_EXTENDED)))
 	{
-		write(1, "+", 1);
+		ft_putchar('+');
 		acl_free(attr);
 	}
 	else
-		write(1, " ", 1);
+		ft_putchar(' ');
 }
 
 /*

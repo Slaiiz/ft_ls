@@ -106,9 +106,6 @@ void	attach_data(t_file *file, struct stat *stats, char *path)
 /*
 ** select_size_display_mode: Employs one of two methods to print the 'size'
 ** field of a file depending on the type of the file.
-** FIXME:
-** /dev/io8log files give major and minor numbers in different orders
-** compared to the ls utility. Why?
 */
 
 void	select_size_display_mode(t_dir *dir, t_file *file)
